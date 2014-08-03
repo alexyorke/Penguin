@@ -12,5 +12,5 @@ Penguin processes messages in six stages.
 2. The message is then split apart into seperate commands (if the user sent seperate commands in the same phrase)
 3. The block descriptions are then tokenized into block ids
 4. The message then is then filtered more. Penguin translates this message into Amber.
-5. Amber gets the message and performs optimizations like message duplication reduction and message replace and remove combining. This reduces requests to the server.
+5. Amber gets the message and performs optimizations on the messages to try to combine them together if possible. Optimizations can usually decrease the overall operation time.
 6. Amber then converts the resulting message into C# code (or something equivalent). This code can then be processed by your program to send actions to the world.

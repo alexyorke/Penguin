@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplescriptPort", "ApplescriptPort.csproj", "{D68BA38C-B01B-4E0C-A25E-2A69F62C838D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Penguin", "Penguin.csproj", "{D68BA38C-B01B-4E0C-A25E-2A69F62C838D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

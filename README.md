@@ -1,6 +1,8 @@
 Penguin
 =======
 
+This repository is currently under maintenance. It will be populated by a port of Penguin today, eventually.
+
 Penguin, send Everybody Edits commands in plain English
 
 Please note that this repository has been heavily inspired by https://github.com/Seist/NaturalLanguageProcessor

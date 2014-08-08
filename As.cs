@@ -1,14 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Penguin
 {
+    /// <summary>
+    /// Applescript extensions
+    /// </summary>
     public static class As
     {
-        public static string[] theWordsOf(string phrase)
+        /// <summary>
+        /// Splits the phrase by spaces, ignoring empty ones
+        /// </summary>
+        /// <param name="phrase">Phrase to get the words of</param>
+        /// <returns></returns>
+        public static string[] TheWordsOf(string phrase)
         {
             return phrase.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         }
@@ -16,6 +22,8 @@ namespace Penguin
         public static bool Is(this string current, string str)
         {
             //Access translations?
+           
+
             return string.Compare(current, str, true) == 0;
         }
 
@@ -70,9 +78,23 @@ namespace Penguin
             return false;
         }
 
+        /// <summary>
+        /// Calculates if the array has another element after an index
+        /// </summary>
         public static bool HasNext(this string[] currrent, int index)
         {
             return index + 1 < currrent.Length;
+        }
+
+        public static string[] Combine(params string[][] arrays)
+        {
+            List<string> list = new List<string>();
+            for (int i = 0; i < arrays.Length; i++)
+            {
+                list.AddRange(arrays[i]);
+            }
+
+            return list.ToArray();
         }
     }
 }

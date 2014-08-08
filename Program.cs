@@ -11,16 +11,25 @@
 
     internal class Program
     {
+        public static void AskUser(string message)
+        {
+            Console.Write(message);
+        }
+
         public static void RunTests()
         {
             string jsonRaw = File.ReadAllText("terms.txt");
-            BlockDescription[] descriptions = JsonConvert.DeserializeObject<BlockDescription[]>(jsonRaw);
+            KeywordDescription[] descriptions = JsonConvert.DeserializeObject<KeywordDescription[]>(jsonRaw);
 
-            Tokenizer tokenizer = new Tokenizer(descriptions);
-            
+            Config config = new Config("English");
+            Tokenizer tokenizer = new Tokenizer(config, descriptions);
+            tokenizer.ProcessPhrase("Username", "remove all of the orange plastic blocks and replace those with blue plastic ones", AskUser);
 
-            Translator translator = new Translator("german");
-            string english = translator.GoogleTranslate("hallo");
+            string message = null;
+            while ((message = Console.ReadLine()) != null)
+            {
+                tokenizer.HandlePhrase("Username", message, AskUser);
+            }
         }
 
         public static void Main(string[] args)

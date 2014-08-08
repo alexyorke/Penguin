@@ -14,12 +14,6 @@
 	"keyword": "useless",
 	"b_ids": [0]
 }, {
-	"keyword": "delete",
-	"b_ids": [0]
-}, {
-	"keyword": "remove",
-	"b_ids": [0]
-}, {
 	"keyword": "gone",
 	"b_ids": [0]
 }, {
@@ -782,9 +776,6 @@
 }, {
 	"keyword": "bricks",
 	"b_ids": [16, 17, 18, 19, 69]
-}, {
-	"keyword": "reddish",
-	"b_ids": [16, 20]
 }, {
 	"keyword": "dark gold",
 	"b_ids": [21]

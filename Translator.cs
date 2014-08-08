@@ -1,78 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Web;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="Translator.cs" company="">
+//   
+// </copyright>
+// <summary>
+//   The translator.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
 namespace Penguin
 {
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Net;
+    using System.Text.RegularExpressions;
+    using System.Web;
+
+    using NHunspell;
+
+    /// <summary>
+    /// The translator.
+    /// </summary>
     public class Translator
     {
-        public string UserLanguage { get; set; }
+        #region Static Fields
 
-        public string GetTranslation(string term)
-        {
-            //Check if language is already english
-            if (string.Compare(UserLanguage, "English", true) == 0)
-            {
-                return term;
-            }
-
-            //Language is not enlish, check cache for translation
-            for (int i = 0; i < languages.Length; i++)
-            {
-                if (string.Compare(languages[i].Name, UserLanguage) == 0)
-                {
-                    if (languages[i].HasTranslation(term))
-                    {
-                        return languages[i].GetTranslation(term);
-                    }
-                }
-            }
-
-            //Check google for translation
-            string translated = GoogleTranslate(term);
-
-            //Return term back if google was unable to translate
-            return translated ?? term;
-        }
-
-        public string GoogleTranslate(string term)
-        {
-            string fromCulture = languageMap[UserLanguage.ToLower()];
-
-            string url = string.Format(@"http://translate.google.com/translate_a/t?client=j&text={0}&hl=en&sl={1}&tl={2}",
-                                       HttpUtility.UrlEncode(term), fromCulture, "en");
-
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-            request.UserAgent = "Mozilla/5.0";
-
-            string html = null;
-            using (WebResponse response = request.GetResponse())
-            {
-                using (StreamReader rdr = new StreamReader(response.GetResponseStream()))
-                {
-                    html = rdr.ReadToEnd();
-                }
-            }
-
-            //Trim " to deserialize json result
-            return Regex.Match(html, "trans\":(\".*?\"),\"", RegexOptions.IgnoreCase).Groups[1].Value.Trim('\"');
-        }
-
-        public Translator(string language)
-        {
-            this.UserLanguage = language;
-        }
-
-        private static readonly Dictionary<string, string> languageMap;
-
+        /// <summary>
+        /// The languages.
+        /// </summary>
         public static Language[] languages;
 
+        /// <summary>
+        /// The language map.
+        /// </summary>
+        private static readonly Dictionary<string, string> languageMap;
+
+        #endregion
+
+        #region Constructors and Destructors
+
+        /// <summary>
+        /// Initializes static members of the <see cref="Translator"/> class.
+        /// </summary>
         static Translator()
         {
             languageMap = new Dictionary<string, string>();
@@ -140,7 +108,7 @@ namespace Penguin
             languageMap.Add("welsh", "cy");
             languageMap.Add("yiddish", "yi");
 
-            Language welsh = new Language("welsh");
+            var welsh = new Language("welsh");
             welsh.AddEntry("Undo", "Cefn");
             welsh.AddEntry("Fill", "Llenwch");
             welsh.AddEntry("Erase", "Dileu");
@@ -155,11 +123,139 @@ namespace Penguin
             welsh.AddEntry("Here", "Yma");
             welsh.AddEntry("And", "a");
 
-            languages = new Language[]
-            {
-                welsh
-            };
+            languages = new[] { welsh };
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Translator"/> class.
+        /// </summary>
+        /// <param name="userLanguage">
+        /// The user language.
+        /// </param>
+        public Translator(string userLanguage)
+        {
+            this.UserLanguage = userLanguage;
+        }
+
+        #endregion
+
+        #region Public Properties
+
+        /// <summary>
+        /// Gets or sets the user language.
+        /// </summary>
+        public string UserLanguage { get; set; }
+
+        #endregion
+
+        #region Public Methods and Operators
+
+        /// <summary>
+        /// The check spelling.
+        /// </summary>
+        /// <param name="hunspell">
+        /// The hunspell.
+        /// </param>
+        /// <param name="term">
+        /// The term.
+        /// </param>
+        /// <param name="suggestions">
+        /// The suggestions.
+        /// </param>
+        /// <returns>
+        /// The <see cref="bool"/>.
+        /// </returns>
+        public bool CheckSpelling(Hunspell hunspell, string term, out List<string> suggestions)
+        {
+            // Translate word if necessary to english
+            string word = this.GetTranslation(term);
+
+            // Get suggestions
+            suggestions = hunspell.Suggest(word);
+
+            // Return if word was spelled correctly
+            return hunspell.Spell(word);
+        }
+
+        /// <summary>
+        /// The get translation.
+        /// </summary>
+        /// <param name="term">
+        /// The term.
+        /// </param>
+        /// <returns>
+        /// The <see cref="string"/>.
+        /// </returns>
+        public string GetTranslation(string term)
+        {
+            // Check if language is already english
+            if (string.Compare(this.UserLanguage, "English", true) == 0)
+            {
+                return term;
+            }
+
+            // Language is not enlish, check cache for translation
+            for (int i = 0; i < languages.Length; i++)
+            {
+                if (string.Compare(languages[i].Name, this.UserLanguage) == 0)
+                {
+                    if (languages[i].HasTranslation(term))
+                    {
+                        return languages[i].GetTranslation(term);
+                    }
+                }
+            }
+
+            // Check google for translation
+            string translated = this.GoogleTranslate(term, this.UserLanguage, "English");
+
+            // Return term back if google was unable to translate
+            return translated ?? term;
+        }
+
+        /// <summary>
+        /// The google translate.
+        /// </summary>
+        /// <param name="phrase">
+        /// The term.
+        /// </param>
+        /// <returns>
+        /// The <see cref="string"/>.
+        /// </returns>
+        public string GoogleTranslate(string phrase, string from, string to)
+        {
+            // Check if language is already english
+            if (string.Compare(from, to, true) == 0)
+            {
+                return phrase;
+            }
+
+            string fromCulture = languageMap[from.ToLowerInvariant()];
+            string toCulture = languageMap[to.ToLowerInvariant()];
+
+            string url =
+                string.Format(
+                    @"http://translate.google.com/translate_a/t?client=j&text={0}&hl=en&sl={1}&tl={2}", 
+                    HttpUtility.UrlEncode(phrase), 
+                    fromCulture, 
+                    toCulture);
+
+            var request = (HttpWebRequest)WebRequest.Create(url);
+            request.UserAgent = "Mozilla/5.0";
+
+            string html = null;
+            using (WebResponse response = request.GetResponse())
+            {
+                using (var rdr = new StreamReader(response.GetResponseStream()))
+                {
+                    html = rdr.ReadToEnd();
+                }
+            }
+
+            // Trim " to deserialize json result
+            return Regex.Match(html, "trans\":(\".*?\"),\"", RegexOptions.IgnoreCase).Groups[1].Value.Trim('\"');
+        }
+
+        #endregion
     }
 }

@@ -19,12 +19,17 @@ namespace Penguin
     /// <summary>
     /// The script.
     /// </summary>
-    public class Script
+    public class Tokenizer
     {
         /// <summary>
         /// The x, contains 2-D array from terms.txt
         /// </summary>
         private string[][] x;
+
+        /// <summary>
+        /// Array of keywords and block ids
+        /// </summary>
+        private BlockDescription[] descriptions;
 
         /// <summary>
         /// The recursive find.
@@ -62,7 +67,7 @@ namespace Penguin
             var finalFinal = new List<string>();
 
             // resolve phrases like "move the right blocks right one block"
-            this.ambigiousResolver(string.Empty);
+            this.AmbigiousResolver(string.Empty);
 
             // remove the duplicats that are recrusively contained within the search terms (side effect)
             var y = this.duplicateRemover(x.Where(thisItem => this.recursiveContains(search_term, thisItem)).ToArray());
@@ -75,10 +80,9 @@ namespace Penguin
         /// </summary>
         /// <param name="term">
         /// </param>
-        private void ambigiousResolver(string term)
+        private void AmbigiousResolver(string term)
         {
             // Empty
-
             return;
         }
 
@@ -168,7 +172,7 @@ namespace Penguin
             var englishNumbers = As.theWordsOf("one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen");
             string currentBlock = null;
             var inReplaceAll = false;
-            const bool InReplace = false;
+            bool InReplace = false;
             var inRemove = false;
             var separatedQuery = the_phrase.Split(' ');
             var processed = new StringBuilder();
@@ -464,12 +468,12 @@ namespace Penguin
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Script"/> class. 
+        /// Initializes a new instance of the <see cref="TokenizerTokenizer"/> class. 
         /// Applescript 
         /// </summary>
-        public Script()
+        public Tokenizer(BlockDescription[] descriptions)
         {
-            this.LoadX();
+            //this.LoadX();
         }
 
         /// <summary>

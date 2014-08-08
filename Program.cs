@@ -9,15 +9,20 @@
 
     using Newtonsoft.Json;
 
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        public static void RunTests()
         {
             string jsonRaw = File.ReadAllText("terms.txt");
             BlockDescription[] descriptions = JsonConvert.DeserializeObject<BlockDescription[]>(jsonRaw);
 
             Translator translator = new Translator("german");
             string english = translator.GoogleTranslate("hallo");
+        }
+
+        public static void Main(string[] args)
+        {
+            RunTests();
         }
     }
 }

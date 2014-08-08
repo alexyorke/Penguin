@@ -1,19 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ApplescriptPort
+﻿namespace Penguin
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+
+    using Newtonsoft.Json;
+
     class Program
     {
         static void Main(string[] args)
         {
-            Script script = new Script();
-            int[] ids = script.Run();
+            string jsonRaw = File.ReadAllText("terms.txt");
+            BlockDescription[] descriptions = JsonConvert.DeserializeObject<BlockDescription[]>(jsonRaw);
 
-            Console.ReadKey();
+            Translator translator = new Translator("german");
+            string english = translator.GoogleTranslate("hallo");
         }
     }
 }

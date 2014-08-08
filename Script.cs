@@ -1,254 +1,294 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="Script.cs" company="None">
+//   Copyright somethiung
+// </copyright>
+// <summary>
+//   The script.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
-namespace ApplescriptPort
+namespace Penguin
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+
+    /// <summary>
+    /// The script.
+    /// </summary>
     public class Script
     {
+        /// <summary>
+        /// The x, contains 2-D array from terms.txt
+        /// </summary>
         private string[][] x;
 
-        private bool recursiveFind(string[][] x, string theNeedle)
+        /// <summary>
+        /// The recursive find.
+        /// </summary>
+        /// <param name="x">
+        /// The x.
+        /// </param>
+        /// <param name="theNeedle">
+        /// The the needle.
+        /// </param>
+        /// <returns>
+        /// The <see cref="bool"/>.
+        /// </returns>
+        private bool recursiveFind(IEnumerable<string[]> x, string theNeedle)
         {
-            for (int i = 0; i < x.Length; i++)
-            {
-                string[] this_item = x[i];
-                for (int j = 0; j < this_item.Length; j++)
-                {
-                    if (this_item[j].Is(theNeedle))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            // check if any of the sub items contains that sub string.
+            return x.Any(thisItem => thisItem.Any(t => t.Is(theNeedle)));
         }
 
-        private string blockSearcher(string[][] x, string[] search_term)
+        /// <summary>
+        /// The block searcher.
+        /// </summary>
+        /// <param name="x">
+        /// The x.
+        /// </param>
+        /// <param name="search_term">
+        /// The search_term.
+        /// </param>
+        /// <returns>
+        /// The <see cref="string"/>.
+        /// </returns>
+        private string BlockSearcher(string[][] x, string[] search_term)
         {
-            //search term is in the form of {"gate", "green"}
-            List<string> final_final = new List<string>();
-            List<string[]> final = new List<string[]>();
-            for (int i = 0; i < x.Length; i++)
-            {
-                string[] this_item = x[i];
-                if (recursiveContains(search_term, this_item))
-                {
-                    final.Add(this_item);
-                }  
-            }
+            // search term is in the form of {"gate", "green"}
+            var finalFinal = new List<string>();
 
-            ambigiousResolver("");
-            string[][] y = duplicateRemover(final.ToArray());
-            return y[0][0];
+            // resolve phrases like "move the right blocks right one block"
+            this.ambigiousResolver(string.Empty);
+
+            // remove the duplicats that are recrusively contained within the search terms (side effect)
+            var y = this.duplicateRemover(x.Where(thisItem => this.recursiveContains(search_term, thisItem)).ToArray());
+            return y[0][0]; // the first item however
+            // here the user would be prompted with a list of semi-relavent blocks
+            // that they can choose from.
         }
 
+        /// <summary>
+        /// </summary>
+        /// <param name="term">
+        /// </param>
         private void ambigiousResolver(string term)
         {
-            //Empty
+            // Empty
+
             return;
         }
 
-        private bool recursiveContains(string[] x, string[] y)
+        /// <summary>
+        /// Function to search x terms in y
+        /// </summary>
+        /// <param name="x">
+        /// Items to search for in y
+        /// </param>
+        /// <param name="y">
+        /// Items to be searched
+        /// </param>
+        /// <returns>
+        /// If any X terms were found in Y
+        /// </returns>
+        private bool recursiveContains(IEnumerable<string> x, string[] y)
         {
-            for (int i = 0; i < x.Length; i++)
-            {
-                string this_item = x[i].Replace(" ", string.Empty);
-                for (int j = 0; j < y.Length; j++)
-                {
-                    if (string.Compare(this_item, y[j].Replace(" ", string.Empty), true) == 0)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return x.Select(t => t.Replace(" ", string.Empty)).Any(thisItem => y.Any(t1 => string.Compare(thisItem, t1.Replace(" ", string.Empty), StringComparison.OrdinalIgnoreCase) == 0));
         }
 
-        private bool isInteger(string str)
+        /// <summary>
+        /// The is integer function. Returns true if the function is an integer.
+        /// </summary>
+        /// <param name="str">
+        /// The string.
+        /// </param>
+        /// <returns>
+        /// The <see cref="bool"/> of whether or not it is indeed an integer.
+        /// </returns>
+        private bool IsInteger(string str)
         {
-            int result = -1;
+            var result = -1;
             return int.TryParse(str, out result);
         }
 
+        /// <summary>
+        /// The duplicate remover. Removes duplicates in lists.
+        /// </summary>
+        /// <param name="x">
+        /// The array.
+        /// </param>
+        /// <returns>
+        /// The unique <see cref="string[][]"/>.
+        /// </returns>
         private string[][] duplicateRemover(string[][] x)
         {
-            List<string[]> final = new List<string[]>();
-            List<string> final_strings = new List<string>();
-            for (int i = 0; i < x.Length; i++)
+            var final = new List<string[]>();
+            var finalStrings = new List<string>();
+            foreach (var thisItem in x.Where(thisItem => !thisItem.ToString().IsIn(finalStrings)))
             {
-                string[] this_item = x[i];
-                if (!this_item.ToString().IsIn(final_strings))
-                {
-                    final.Add(this_item);
-                    final_strings.Add(this_item.ToString());
-                }
+                final.Add(thisItem);
+                finalStrings.Add(thisItem.ToString());
             }
 
             return final.ToArray();
         }
 
+        /// <summary>
+        /// Checks if the sub-arrays contain a certain string. If so, return the number
+        /// of matches. Useful for finding search terms.
+        /// </summary>
+        /// <param name="x">
+        /// </param>
+        /// <param name="search_term">
+        /// </param>
+        /// <returns>
+        /// The <see cref="int"/>.
+        /// </returns>
         private int superFind(string[] x, string search_term)
         {
-            int j = 0;
-            for (int i = 0; i < x.Length; i++)
-            {
-                string this_item = x[i];
-                if (this_item.Contains(search_term))
-                {
-                    j++;
-                }
-            }
-
-            return j;
+            return x.Count(thisItem => thisItem.Contains(search_term));
         }
 
+        /// <summary>
+        /// Parse function to be called after block id's have been tokenized.
+        /// This means that this function compiles the phrase into Iceberg.
+        /// </summary>
+        /// <param name="the_phrase">
+        /// </param>
+        /// <returns>
+        /// The <see cref="string[]"/>.
+        /// </returns>
         private string[] parse(string the_phrase)
         {
-            string[] allowed_words = As.theWordsOf("delete remove undo move change find and them those replace");
+            var allowed_words = As.theWordsOf("delete remove undo move change find and them those replace it if then however cancel stop");
 
-            string[] english_numbers = As.theWordsOf("one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen");
+            var englishNumbers = As.theWordsOf("one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen");
+            string currentBlock = null;
+            var inReplaceAll = false;
+            const bool InReplace = false;
+            var inRemove = false;
+            var separatedQuery = the_phrase.Split(' ');
+            var processed = new StringBuilder();
 
-            string current_block = null;
-
-            bool in_replace_all = false;
-
-            bool in_replace = false;
-
-            bool in_remove = false;
-
-            string[] separated_query = the_phrase.Split(' ');
-
-            StringBuilder processed = new StringBuilder();
-
-            for (int i = 0; i < separated_query.Length; i++)
+            for (var i = 0; i < separatedQuery.Length; i++)
             {
-                string this_item = separated_query[i];
+                var thisItem = separatedQuery[i];
 
-                if (i < separated_query.Length - 1)
+                if (i < separatedQuery.Length - 1)
                 {
-                    if (this_item.Is("replace") && separated_query[i + 1].Is("all"))
+                    if (thisItem.Is("replace") && separatedQuery[i + 1].Is("all"))
                     {
-                        if (in_replace)
+                        if (InReplace) // always false apparently :p
                         {
-                            //set end of processed to "REPLACE_ALL:"
+                            // set end of processed to "REPLACE_ALL:"
                             processed.AppendLine("REPLACE_ALL:");
                         }
 
-                        in_replace_all = true;
+                        inReplaceAll = true;
                     }
                 }
 
-                if (this_item.Is("replace"))
+                if (thisItem.Is("replace"))
                 {                    
-                    processed.AppendLine("{return, \"REPLACE:\"}");//?
+                    processed.AppendLine("REPLACE:");
                 }
 
-                if (this_item.IsIn("remove", "delete"))
+                if (thisItem.IsIn("remove", "delete", "erase"))
                 {
                     processed.AppendLine("REMOVE:");
-                    in_remove = true;
+                    inRemove = true; // make sure to check if we are in a function
+                    // so that the "->" can be added correctly.
                 }
 
-                if (this_item.Is("with"))
+                if (thisItem.Is("with"))
                 {
                     processed.AppendLine("->");
                 }
 
-                if (this_item.Is("then"))
+                if (thisItem.Is("then"))
                 {
-                    processed.AppendLine(this_item);
-                    if (!in_replace_all && !in_replace && !in_remove)
+                    processed.AppendLine(thisItem);
+                    if (!inReplaceAll && !InReplace && !inRemove)
                     {
                         processed.AppendLine("return");
                     }
 
-                    current_block = this_item;
+                    currentBlock = thisItem;
                 }
 
-                if (this_item.IsIn("those", "them"))
+                if (thisItem.IsIn("those", "them"))
                 {
-                    processed.AppendLine(current_block);
+                    processed.AppendLine(currentBlock); // use the current block that
+                    // was mentioned the last time.
                 }
 
-                if (this_item.Is("move"))
+                if (thisItem.Is("move"))
                 {
                     processed.AppendLine("return");
                     processed.AppendLine("MOVE:");
                 }
 
-                if (this_item.Is("left") && separated_query.HasNext(i))
+                if ((thisItem.Is("left") || thisItem.Is("up")) && separatedQuery.HasNext(i))
                 {
                     processed.AppendLine("->-");
 
-                    //Optimization instead of checking if exists then finding index,
-                    //just check if index is not -1
-                    int possible_num_index = item_offset(separated_query[i + 1], english_numbers);
-                    if (possible_num_index != -1)
+                    // Optimization instead of checking if exists then finding index,
+                    // just check if index is not -1
+                    var possibleNumIndex = this.item_offset(separatedQuery[i + 1], englishNumbers);
+                    if (possibleNumIndex != -1)
                     {
-                        int number = possible_num_index + 1; //one is at 0th index
-                        processed.AppendLine(number.ToString());
-                        processed.AppendLine("Y");
+                        // add a coordinate (y coordiante) if moving left or right
+                        var number = possibleNumIndex + 1; // one is at 0th index
+                        processed.AppendLine(number.ToString(CultureInfo.InvariantCulture));
+
+                        processed.AppendLine(thisItem.Is("up") ? "Y" : "X");
                     }
                 }
 
-                if (this_item.Is("up") && separated_query.HasNext(i))
-                {
-                    processed.AppendLine("->-");
-                    int possible_num_index = item_offset(separated_query[i + 1], english_numbers);
-                    if (possible_num_index != -1)
-                    {
-                        int number = possible_num_index + 1; //one is at 0th index
-                        processed.AppendLine(number.ToString());
-                        processed.AppendLine("X");
-                    }
-                }
-
-                if (this_item.Is("down") && separated_query.HasNext(i))
+                if ((thisItem.Is("down") || thisItem.Is("right")) && separatedQuery.HasNext(i))
                 {
                     processed.AppendLine("->");
-                    int possible_num_index = item_offset(separated_query[i + 1], english_numbers);
-                    if (possible_num_index != -1)
+                    var possibleNumIndex = this.item_offset(separatedQuery[i + 1], englishNumbers);
+                    if (possibleNumIndex != -1)
                     {
-                        int number = possible_num_index + 1; //one is at 0th index
-                        processed.AppendLine(number.ToString());
-                        processed.AppendLine("X");
+                        var number = possibleNumIndex + 1; // one is at 0th index
+                        processed.AppendLine(number.ToString(CultureInfo.InvariantCulture));
+                        processed.AppendLine(thisItem.Is("down") ? "X" : "Y");
                     }
                 }
 
-                if (this_item.Is("right") && separated_query.HasNext(i))
+                if (thisItem.IsIn("nevermind", "cancel", "abort", "stop", "undo"))
                 {
-                    processed.AppendLine("->");
-                    int possible_num_index = item_offset(separated_query[i + 1], english_numbers);
-                    if (possible_num_index != -1)
-                    {
-                        int number = possible_num_index + 1; //one is at 0th index
-                        processed.AppendLine(number.ToString());
-                        processed.AppendLine("Y");
-                    }
-                }
-
-                if (this_item.IsIn("nevermind", "cancel", "abort", "stop", "undo"))
-                {
-                    processed.AppendLine("{return, \"CANCEL_LAST_COMMAND\"}");
+                    processed.AppendLine("CANCEL_LAST_COMMAND");
                 }
             }
 
-            return findDuplicatesNextToEachOther(optimize(processed.ToString()));
+            return this.findDuplicatesNextToEachOther(this.Optimize(processed.ToString()));
         }
 
-        //Better for future translations instead of System.String.IndexOf
-        private int item_offset(string needle, string[] haystack)
+        // Better for future translations instead of System.String.IndexOf
+
+        /// <summary>
+        /// The item offset. The offset of an item in a list.
+        /// </summary>
+        /// <param name="needle">
+        /// The needle.
+        /// </param>
+        /// <param name="haystack">
+        /// The haystack.
+        /// </param>
+        /// <returns>
+        /// The offset <see cref="int"/>.
+        /// </returns>
+        private int item_offset(string needle, IList<string> haystack)
         {
-            for (int i = 0; i < haystack.Length; i++)
+            for (var i = 0; i < haystack.Count; i++)
             {
-                string this_item = haystack[i];
-                if (needle.Is(this_item))
+                var thisItem = haystack[i];
+                if (needle.Is(thisItem))
                 {
                     return i;
                 }
@@ -257,125 +297,161 @@ namespace ApplescriptPort
             return -1;
         }
 
-        private string[] filter_query(string[] the_query)
+        /// <summary>
+        /// The filter query function. This function does goes through the query
+        /// and checks if the item isn't empty. if it is, remove it.
+        /// </summary>
+        /// <param name="theQuery">
+        /// The the_query.
+        /// </param>
+        /// <returns>
+        /// The <see cref="string[]"/>.
+        /// </returns>
+        private string[] filter_query(string[] theQuery)
         {
-            List<string> the_query_filtered = new List<string>();
-            for (int i = 0; i < the_query.Length; i++)
-            {
-                string this_item = the_query[i];
-                if (this_item.IsNot(string.Empty)) //Use !string.IsNullOrWhitespace?
-                {
-                    the_query_filtered.Add(this_item);
-                }
-            }
-
-            return the_query_filtered.ToArray();
+            return theQuery.Where(thisItem => thisItem.IsNot(string.Empty)).ToArray();
         }
 
-        private string[] optimize(string query)
+        /// <summary>
+        /// The optimize function. This optimizes Iceberg code but isn't ultra important since
+        /// the map composite can be generated if given access to the map this is pretty
+        /// much useless.
+        /// Optimizations include combining multiple add and remove functions as well as
+        /// removing dead code that moves blocks off of the screen or replaces non existant
+        /// blocks that were previously replaced.
+        /// </summary>
+        /// <param name="query">
+        /// The query.
+        /// </param>
+        /// <returns>
+        /// The<see cref="string[]"/>.
+        /// </returns>
+        private string[] Optimize(string query)
         {
-            string[] the_query = query.Split('\r', '\n');
+            var theQuery = query.Split('\r', '\n');
 
-            //List<string> the_query_filtered = new List<string>();
-            for (int i = 0; i < the_query.Length; i++)
+            // List<string> the_query_filtered = new List<string>();
+            for (var i = 0; i < theQuery.Length; i++)
             {
-                string this_item = the_query[i];
-                if (this_item.Is("CANCEL_LAST_COMMAND"))
+                var thisItem = theQuery[i];
+
+                // check if the user cancelled the last command. if so, tell Iceberg about it.
+                if (!thisItem.Is("CANCEL_LAST_COMMAND"))
                 {
-                    the_query[i - 1] = string.Empty;
-                    the_query[i] = string.Empty;
+                    continue;
+                }
+
+                theQuery[i - 1] = string.Empty;
+                theQuery[i] = string.Empty;
+            }
+
+            theQuery = this.filter_query(theQuery);
+            for (var i = 0; i < theQuery.Length - 1; i++)
+            {
+                var thisItem = theQuery[i];
+                if (thisItem.Is(theQuery[i + 1]))
+                {
+                    theQuery[i + 1] = string.Empty;
                 }
             }
 
-            the_query = filter_query(the_query);
-            for (int i = 0; i < the_query.Length - 1; i++)
+            theQuery = this.filter_query(theQuery);
+            string lastItem = null;
+            for (var i = 0; i < theQuery.Length; i++)
             {
-                string this_item = the_query[i];
-                if (this_item.Is(the_query[i + 1]))
-                {
-                    the_query[i + 1] = string.Empty;
-                }
-            }
-
-            the_query = filter_query(the_query);
-            string last_item = null;
-            for (int i = 0; i < the_query.Length; i++)
-            {
-                string this_item = the_query[i];
+                var thisItem = theQuery[i];
                 if (i > 0)
                 {
-                    last_item = the_query[i - 1]; 
+                    lastItem = theQuery[i - 1]; 
                 }
 
-                if (this_item.Is(last_item))
+                if (thisItem.Is(lastItem))
                 {
-                    the_query[i] = string.Empty;
+                    theQuery[i] = string.Empty;
                 }
 
-                if (i < the_query.Length - 1)
+                if (i >= theQuery.Length - 1)
                 {
-                    if (this_item.Contains("REPLACE"))
-                    {
-                        if (the_query[i + 1].Contains("REMOVE"))
-                        {
-                            string item_one_subject = this_item.Split(':')[1];
-                            string item_thing = item_one_subject.Split(new string[1] { "->" }, StringSplitOptions.None)[0];
-                            item_one_subject = item_one_subject.Split(new string[1] { "->" }, StringSplitOptions.None)[1];
-                            string item_two_subject = the_query[i + 1].Split(':')[1];
-                            //log item_one_subject
-                            //log item_two_subject
-                            if (item_one_subject.Is(item_two_subject))
-                            {
-                                the_query[i] = "REMOVE:" + item_thing;
-                                //set item (i + 1) of the_query to ""
-                            }
-                        }
-                    }
+                    continue;
+                }
+
+                if (!thisItem.Contains("REPLACE"))
+                {
+                    continue;
+                }
+
+                if (!theQuery[i + 1].Contains("REMOVE"))
+                {
+                    continue;
+                }
+
+                var itemOneSubject = thisItem.Split(':')[1];
+                var itemThing = itemOneSubject.Split(new[] { "->" }, StringSplitOptions.None)[0];
+                itemOneSubject = itemOneSubject.Split(new[] { "->" }, StringSplitOptions.None)[1];
+                var itemTwoSubject = theQuery[i + 1].Split(':')[1];
+
+                if (itemOneSubject.Is(itemTwoSubject))
+                {
+                    theQuery[i] = "REMOVE:" + itemThing;
                 }
             }
 
-            //Remove replace queries if their blocks have already been removed (nothing to replace)
-
-            return the_query;
+            // Remove replace queries if their blocks have already been removed (nothing to replace)
+            return theQuery;
         }
 
-        private string[] findDuplicatesNextToEachOther(string[] local_x)
+        /// <summary>
+        /// The find duplicates next to each other function. This function checks
+        /// if the same command is specified twice. If it is then it merges it into one
+        /// command to reduce the load on the server. This function is only used by the 
+        /// optimize function.
+        /// </summary>
+        /// <param name="localX">
+        /// The local_x.
+        /// </param>
+        /// <returns>
+        /// The resulting array.
+        /// </returns>
+        private string[] findDuplicatesNextToEachOther(string[] localX)
         {
-            List<string> final = new List<string>();
-            for (int i = 0; i < local_x.Length; i++)
+            var final = new List<string>();
+            for (var i = 0; i < localX.Length; i++)
             {
-                string this_item = local_x[i];
-                if (i < local_x.Length - 1)
+                var thisItem = localX[i];
+                if (i < localX.Length - 1)
                 {
-                    if (this_item.IsNot(local_x[i + 1]))
+                    if (thisItem.IsNot(localX[i + 1]))
                     {
-                        final.Add(this_item);
+                        final.Add(thisItem);
                     }
                 }
                 else
                 {
-                    final.Add(this_item);
+                    final.Add(thisItem);
                 }
             }
 
             return final.ToArray();
         }
 
+        /// <summary>
+        /// Loads x terms which hold block id descriptions.
+        /// </summary>
         private void LoadX()
         {
-            List<string[]> x = new List<string[]>();
-            string content = File.ReadAllText("terms.txt").Substring(1);
+            var x = new List<string[]>();
+            var content = File.ReadAllText("terms.txt").Substring(1);
 
-            int brakcetIndex = -1;
-            string currentContent = content;
-            while ((brakcetIndex = currentContent.IndexOf("{")) != -1)
+            var brakcetIndex = -1;
+            var currentContent = content;
+            while ((brakcetIndex = currentContent.IndexOf("{", StringComparison.Ordinal)) != -1)
             {
-                string bracketStr = currentContent.Substring(brakcetIndex + 1);
-                int endBracket = bracketStr.IndexOf("}");
+                var bracketStr = currentContent.Substring(brakcetIndex + 1);
+                var endBracket = bracketStr.IndexOf("}", StringComparison.Ordinal);
 
-                string array = bracketStr.Substring(0, endBracket).Replace("\"", string.Empty);
-                string[] arrayElements = array.Split(',');
-                for (int i = 0; i < arrayElements.Length; i++)
+                var array = bracketStr.Substring(0, endBracket).Replace("\"", string.Empty);
+                var arrayElements = array.Split(',');
+                for (var i = 0; i < arrayElements.Length; i++)
                 {
                     arrayElements[i] = arrayElements[i].Trim();
                 }
@@ -387,76 +463,81 @@ namespace ApplescriptPort
             this.x = x.ToArray();
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Script"/> class. 
+        /// Applescript 
+        /// </summary>
         public Script()
         {
-            LoadX();
+            this.LoadX();
         }
 
+        /// <summary>
+        /// The run. Run the entire script.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="int[]"/>.
+        /// </returns>
         public int[] Run()
         {
-            //remove, replace, delete, move, cancel, undo*,
-            string[] the_phrase = As.theWordsOf("remove all of the 883 blocks and replace those with 993 blocks then delete them thanks bye. replace all 883 with 993  Oh sorry could you move all of those blocks right seven blocks? Wait wait sorry cancel that last thing");
+            // remove, replace, delete, move, cancel, undo*,
+            var the_phrase = As.theWordsOf("remove all of the 883 blocks and replace those with 993 blocks then delete them thanks bye. replace all 883 with 993  Oh sorry could you move all of those blocks right seven blocks? Wait wait sorry cancel that last thing");
 
-            List<string[]> final = new List<string[]>();
-            List<string> tmp = new List<string>();
+            var final = new List<string[]>();
+            var tmp = new List<string>();
 
-            bool FLAG_ONE = false;
-            bool FLAG_TWO = false;
-            bool FLAG_THREE = false;
+            var flagOne = false;
+            var flagTwo = false;
+            var flagThree = false;
 
-            for (int i = 0; i < the_phrase.Length; i++)
+            for (var i = 0; i < the_phrase.Length; i++)
             {
-                if (FLAG_ONE)
+                if (flagTwo)
                 {
-                    i++;
-                    FLAG_ONE = false;
-                }
-                else if (FLAG_TWO)
-                {
-                    FLAG_TWO = false;
+                    flagTwo = false;
                     i++;
                 }
-                else if (FLAG_THREE)
+                else if (flagThree)
                 {
-                    FLAG_THREE = false;
+                    flagThree = false;
                     i++;
                 }
 
-                if (recursiveFind(this.x, the_phrase[i]))
+                // this is the tokenizer. It looks for a word that exists in the search
+                // terms and checks if the next word is also in the search term. If so,
+                // it looks for the third word and checks if that is also in the search
+                // terms. If it is then it creates a token with that block description in it,
+                // and breaks when there are more than three words or the next word is not contained
+                // in the search list.
+                if (this.recursiveFind(this.x, the_phrase[i]))
                 {
                     tmp.Add(the_phrase[i]);
-                    //set FLAG_ONE to true
 
-                    if (recursiveFind(this.x, the_phrase[i + 1]))
+                    // set FLAG_ONE to true
+                    if (this.recursiveFind(this.x, the_phrase[i + 1]))
                     {
                         tmp.Add(the_phrase[i + 1]);
-                        FLAG_TWO = true;
+                        flagTwo = true;
 
-                        if (recursiveFind(this.x, the_phrase[i + 2]))
+                        if (this.recursiveFind(this.x, the_phrase[i + 2]))
                         {
                             tmp.Add(the_phrase[i + 2]);
-                            FLAG_THREE = true;
+                            flagThree = true;
                         }
                     }
                 }
 
-                if (tmp.Count > 0)
+                if (tmp.Count <= 0)
                 {
-                    final.Add(tmp.ToArray());
-                    tmp.Clear();
+                    continue;
                 }
+
+                final.Add(tmp.ToArray());
+                tmp.Clear();
             }
 
-            List<int> final_ids = new List<int>();
-            for (int i = 0; i < final.Count; i++)
-            {
-                string[] this_item = final[i];
-                final_ids.Add(int.Parse(blockSearcher(this.x, this_item)));
-            }
-
-            //final_ids is just the ids. These ids need to replace the tokenized word. It is very important that this occurs.
-
-            return final_ids.ToArray();
+            // final_ids is just the ids. These ids need to replace the tokenized word. It is very important that this occurs.
+            return final.Select(thisItem => int.Parse(this.BlockSearcher(this.x, thisItem))).ToArray();
         }
     }
 }

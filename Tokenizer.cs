@@ -70,7 +70,7 @@ namespace Penguin
             this.AmbigiousResolver(string.Empty);
 
             // remove the duplicats that are recrusively contained within the search terms (side effect)
-            var y = this.duplicateRemover(x.Where(thisItem => this.recursiveContains(search_term, thisItem)).ToArray());
+            var y = this.duplicateRemover(x.Where(thisItem => this.RecursiveContains(search_term, thisItem)).ToArray());
             return y[0][0]; // the first item however
             // here the user would be prompted with a list of semi-relavent blocks
             // that they can choose from.
@@ -98,7 +98,7 @@ namespace Penguin
         /// <returns>
         /// If any X terms were found in Y
         /// </returns>
-        private bool recursiveContains(IEnumerable<string> x, string[] y)
+        private bool RecursiveContains(IEnumerable<string> x, string[] y)
         {
             return x.Select(t => t.Replace(" ", string.Empty)).Any(thisItem => y.Any(t1 => string.Compare(thisItem, t1.Replace(" ", string.Empty), StringComparison.OrdinalIgnoreCase) == 0));
         }

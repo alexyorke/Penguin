@@ -16,6 +16,9 @@
             string jsonRaw = File.ReadAllText("terms.txt");
             BlockDescription[] descriptions = JsonConvert.DeserializeObject<BlockDescription[]>(jsonRaw);
 
+            Tokenizer tokenizer = new Tokenizer(descriptions);
+            
+
             Translator translator = new Translator("german");
             string english = translator.GoogleTranslate("hallo");
         }

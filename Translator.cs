@@ -16,6 +16,13 @@ namespace Penguin
 
         public string GetTranslation(string term)
         {
+            //Check if language is already english
+            if (string.Compare(UserLanguage, "English", true) == 0)
+            {
+                return term;
+            }
+
+            //Language is not enlish, check cache for translation
             for (int i = 0; i < languages.Length; i++)
             {
                 if (string.Compare(languages[i].Name, UserLanguage) == 0)
@@ -27,10 +34,10 @@ namespace Penguin
                 }
             }
 
-            //Check google
+            //Check google for translation
             string translated = GoogleTranslate(term);
 
-            //Return term back was google was unable to translate
+            //Return term back if google was unable to translate
             return translated ?? term;
         }
 
@@ -132,7 +139,6 @@ namespace Penguin
             languageMap.Add("vietnamese", "vi");
             languageMap.Add("welsh", "cy");
             languageMap.Add("yiddish", "yi");
-
 
             Language welsh = new Language("welsh");
             welsh.AddEntry("Undo", "Cefn");

@@ -52,13 +52,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="As.cs" />
+    <Compile Include="ITask.cs" />
     <Compile Include="KeywordDescription.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Language.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Penguin.cs" />
+    <Compile Include="ParsedMessage.cs" />
     <Compile Include="PenguinException.cs" />
+    <Compile Include="Tasks\Undo.cs" />
+    <Compile Include="Tasks\Erase.cs" />
+    <Compile Include="Tasks\Fill.cs" />
+    <Compile Include="Tasks\Replace.cs" />
     <Compile Include="TestPhrases.cs" />
     <Compile Include="Token.cs" />
     <Compile Include="Tokenizer.cs" />

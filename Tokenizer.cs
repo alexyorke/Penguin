@@ -37,6 +37,18 @@ namespace Penguin
      * - Locates and identifies syntax errors
      */
 
+
+    /*
+     * Marquee stuff (to make replace a bit more interesting):
+     * Given an initial coordinate at the top left hand side and another secondary
+     * coordinate at the bottom right hand side what coordinates govern the top right
+     * hand side and the bottom left hand side? Well,
+     * Let (x1,y1) be the initial coordinate and (x2,y2) be the secondary coordinate.
+     * The top right hand coordinate would be given by:
+     * (x2,y1) and the bottom left hand coordinate would be:
+     * (x1,y2) which would govern an area of (x2-x1)*(y2-y1) blocks
+     * 
+     */
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -44,6 +56,7 @@ namespace Penguin
     using System.Text;
 
     using NHunspell;
+    using Penguin.Tasks;
 
     /// <summary>
     ///     The ask user.
@@ -52,6 +65,16 @@ namespace Penguin
     ///     The message.
     /// </param>
     public delegate void UserMessageHandler(string message);
+
+    public delegate void MessageParsedHandler(ParsedMessage message);
+
+    public delegate void ReplaceEventHandler(int sourceID, int replaceID);
+
+    public delegate void FillEventHandler(int blockID);
+
+    public delegate void DeleteEventHandler(int blockID);
+
+    public delegate void UndoEventHandler();
 
     /// <summary>
     ///     The script.
@@ -92,7 +115,7 @@ namespace Penguin
         /// <summary>
         /// The reference keywords.
         /// </summary>
-        public static readonly string[] ReferenceKeywords = { "those", "them", "it", "that" };
+        public static readonly string[] ReferenceKeywords = { "these", "those", "them", "it", "that" };
 
         /// <summary>
         /// The replace commands.
@@ -109,7 +132,7 @@ namespace Penguin
         public static readonly string[] UndoCommands =
         {
             "undo", "back", "free", "reverse", "revert", "reappear", 
-            "rewind", "re-wind", "was"
+            "rewind", "was"
         };
 
         #endregion
@@ -119,7 +142,7 @@ namespace Penguin
         /// <summary>
         ///     List of all combined categories of commands
         /// </summary>
-        public readonly string[] Commands = As.Combine(
+        private readonly string[] Commands = As.Combine(
             ReplaceCommands, 
             MoveCommands, 
             UndoCommands, 
@@ -164,9 +187,23 @@ namespace Penguin
         private string processedMessage;
 
         /// <summary>
+        /// Raw message
+        /// </summary>
+        private string rawMessage;
+
+        /// <summary>
         /// The processed tokens.
         /// </summary>
         private List<Token> processedTokens;
+
+        #endregion
+
+        #region Properties And Events
+
+        /// <summary>
+        /// Event for when message from the user is parsed
+        /// </summary>
+        public event MessageParsedHandler OnMessageParsed;
 
         #endregion
 
@@ -285,9 +322,88 @@ namespace Penguin
             // (6) That phrase then goes through the Penguin parser which:
             // * - Identifies keywords such as "remove" and "replace" and generates corresponding iceberg code
             // * - Locates and identifies syntax errors
+            ParsedMessage message = new ParsedMessage();
+            message.Value = tokenizedMessage.ToString();
+            message.RawMessage = rawMessage;
+            message.Tokens = processedTokens.ToArray();
 
-            // Process into iceberg language
-            StringBuilder processed = this.Parse(tokenizedMessage.ToString());
+            List<ITask> tasks = new List<ITask>();
+            for (int i = 0; i < processedTokens.Count; i++)
+            {
+                if (processedTokens[i].Type == TokenType.Command)
+                {
+                    if (processedTokens[i].Value[0].IsIn(ReplaceCommands))
+                    {
+                        //Check for 2 args
+                        if (HasValidArguments(i, 2))
+                        {
+                            Replace replace = new Replace(int.Parse(processedTokens[i + 1].Value[0]), int.Parse(processedTokens[i + 2].Value[0]));
+                            tasks.Add(replace);
+                        }
+                    }
+                    else if (processedTokens[i].Value[0].IsIn(EraseCommands))
+                    {
+                        //Check for 1 args
+                        if (HasValidArguments(i, 1))
+                        {
+                            Erase erase = new Erase(int.Parse(processedTokens[i + 1].Value[0]));
+                            tasks.Add(erase);
+                        }
+                    }
+                    else if (processedTokens[i].Value[0].IsIn(FindCommands))
+                    {
+                        //Check for 1 args
+                        if (HasValidArguments(i, 1))
+                        {
+
+                        }
+                    }
+                    else if (processedTokens[i].Value[0].IsIn(MoveCommands))
+                    {
+                        //Check for 2 args
+                        
+                    }
+                    else if (processedTokens[i].Value[0].IsIn(UndoCommands))
+                    {
+                        //Check for 0 args
+                        Undo undo = new Undo();
+                        tasks.Add(undo);
+                    }
+                    else if (processedTokens[i].Value[0].IsIn(CancelCommands))
+                    {
+                        //Check for 0 args
+                    }
+                }
+            }
+
+            message.Tasks = tasks.ToArray();
+            if (OnMessageParsed != null)
+            {
+                OnMessageParsed(message);
+            }
+        } 
+
+        /// <summary>
+        /// Checks to see if a command has enough arguments to execute
+        /// </summary>
+        /// <param name="index">Index of the command</param>
+        /// <param name="args">Block Arguments needed</param>
+        public bool HasValidArguments(int index, int args)
+        {
+            int count = 0;
+            for (int i = index; i < processedTokens.Count; i++)
+            {
+                if (processedTokens[i].Type == TokenType.Block)
+                {
+                    count++;
+                    if (count >= args)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -442,7 +558,15 @@ namespace Penguin
             }
 
             token.Type = TokenType.Block;
-            token.Value = new[] { potentialMatches[0].BlockIds[0].ToString(CultureInfo.InvariantCulture) };
+            if (potentialMatches.Length > 0)
+            {
+                token.Value = new[] { potentialMatches[0].BlockIds[0].ToString(CultureInfo.InvariantCulture) };
+            }
+            else
+            {
+                token.IsUnknown = true;
+            }
+
             return token;
         }
 
@@ -467,7 +591,8 @@ namespace Penguin
                         if (this.ambigiousTokens.Count > 0)
                         {
                             Token waiting = this.ambigiousTokens.Peek();
-                            if (waiting.ParseResponse(this, phrase))
+                            string translatedResponse = translator.Translate(phrase, config.Language, "English");
+                            if (waiting.ParseResponse(this, translatedResponse))
                             {
                                 this.processedTokens.Add(waiting);
 
@@ -476,7 +601,7 @@ namespace Penguin
                                 {
                                     Token next = this.ambigiousTokens.Peek();
                                     string question = next.GetUserConfirmation(this.config);
-                                    string translatedQuestion = this.translator.GoogleTranslate(
+                                    string translatedQuestion = this.translator.Translate(
                                         question,
                                         "English",
                                         this.config.Language);
@@ -488,7 +613,11 @@ namespace Penguin
                             }
                             else
                             {
-                                callback(this.config.MisunderstoodMessage);
+                                //Translate config message
+                                int length = config.MisunderstoodMessages.Length;
+                                string misunderstoodMessage = config.MisunderstoodMessages[config.Random.Next(length)];
+                                string translatedMisundersoodMessage = translator.Translate(misunderstoodMessage, "English", config.Language);
+                                callback(translatedMisundersoodMessage);
 
                                 // Cant finalize processing yet, return.
                                 return;
@@ -518,9 +647,13 @@ namespace Penguin
         public void ProcessPhrase(string username, string rawMessage, UserMessageHandler callback)
         {
             this.TalkingTo = username;
+            this.rawMessage = rawMessage;
 
-            // (2) Remove punctuation and clean message from excess whitespace and other garbage
-            string message = this.CleanRaw(rawMessage);
+            // (2) Translate raw message into english
+            string translatedMessage = translator.Translate(rawMessage, config.Language, "English");
+
+            // (2.1) Remove punctuation and clean message from excess whitespace and other garbage
+            string message = this.CleanRaw(translatedMessage);
 
             // (4) This command is then goes through the first stage parser which tokenizes the keywords.
             // (4.1) Each word is checked for proper spelling
@@ -549,7 +682,7 @@ namespace Penguin
                 // Start asking user
                 Token next = this.ambigiousTokens.Peek();
                 string question = next.GetUserConfirmation(this.config);
-                string translatedQuestion = this.translator.GoogleTranslate(question, "English", this.config.Language);
+                string translatedQuestion = this.translator.Translate(question, "English", this.config.Language);
                 callback(translatedQuestion);
             }
             else

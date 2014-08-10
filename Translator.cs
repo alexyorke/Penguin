@@ -168,7 +168,7 @@ namespace Penguin
         public bool CheckSpelling(Hunspell hunspell, string term, out List<string> suggestions)
         {
             // Translate word if necessary to english
-            string word = this.GetTranslation(term);
+            string word = this.GetLocalTranslation(term);
 
             // Get suggestions
             suggestions = hunspell.Suggest(word);
@@ -186,7 +186,7 @@ namespace Penguin
         /// <returns>
         /// The <see cref="string"/>.
         /// </returns>
-        public string GetTranslation(string term)
+        public string GetLocalTranslation(string term)
         {
             // Check if language is already english
             if (string.Compare(this.UserLanguage, "English", true) == 0)
@@ -207,7 +207,7 @@ namespace Penguin
             }
 
             // Check google for translation
-            string translated = this.GoogleTranslate(term, this.UserLanguage, "English");
+            string translated = this.Translate(term, this.UserLanguage, "English");
 
             // Return term back if google was unable to translate
             return translated ?? term;
@@ -222,9 +222,9 @@ namespace Penguin
         /// <returns>
         /// The <see cref="string"/>.
         /// </returns>
-        public string GoogleTranslate(string phrase, string from, string to)
+        public string Translate(string phrase, string from, string to)
         {
-            // Check if language is already english
+            // Check if source and destination are different
             if (string.Compare(from, to, true) == 0)
             {
                 return phrase;

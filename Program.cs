@@ -10,6 +10,7 @@
     using Newtonsoft.Json;
     using PlayerIOClient;
     using System.Threading;
+    using Penguin.Tasks;
 
     internal class Program
     {
@@ -39,16 +40,49 @@
             string jsonRaw = File.ReadAllText("terms.txt");
             KeywordDescription[] descriptions = JsonConvert.DeserializeObject<KeywordDescription[]>(jsonRaw);
 
+            Client client = PlayerIO.QuickConnect.SimpleConnect("everybody-edits-su9rn58o40itdbnw69plyw", "hexanywhere@gmail.com", "penguinpassword");
+            Connection connection = client.Multiplayer.JoinRoom("PWabBXJqbebEI", null);
+
             Config config = new Config("English");
             Tokenizer tokenizer = new Tokenizer(config, descriptions);
             tokenizer.OnMessageParsed += delegate(ParsedMessage message)
             {
                 //Handle commands here
+                for (int i = 0; i < message.Tasks.Length; i++)
+                {
+                    //Test task type by doing
+                    if (message.Tasks[i] is Replace)
+                    {
+                        Replace replace = (Replace)message.Tasks[i];
+                        //replace.ReplaceID;
+                        //replace.SourceID;
+
+                        //Put this in Replace.cs Perform()...
+                        /*for (int j = 0; j < NotImplementedMap.Length; j++)
+                        {
+                            if (j[i][0] == replace.SourceID)
+                            {
+                                connection.Send("b",1,j[i][1],j[i][2],replace.ReplaceID);
+                            }
+                        }*/
+
+                    }
+                        
+                        
+                   
+
+                    
+                    
+
+                    //Get task block list by doing
+                    message.Tasks[i].GetBlockList();
+                }
+
+                
                 Console.WriteLine(message.RawMessage + " -> " + message.Value);
             };
 
-            Client client = PlayerIO.QuickConnect.SimpleConnect("everybody-edits-su9rn58o40itdbnw69plyw", "hexanywhere@gmail.com", "penguinpassword");
-            Connection connection = client.Multiplayer.JoinRoom("PWabBXJqbebEI", null);
+
             Dictionary<int, string> players = new Dictionary<int, string>();
             connection.OnMessage += delegate(object s, Message m)
             {
@@ -67,7 +101,7 @@
                             tokenizer.ProcessPhrase(username, m.GetString(1), delegate(string message)
                             {
                                 connection.Send("say", message);
-                                Thread.Sleep(15);
+                                Thread.Sleep(50); // just for me
                             });
                         }
 

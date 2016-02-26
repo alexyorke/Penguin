@@ -63,7 +63,7 @@ namespace Penguin.Tasks
         /// </returns>
         public IEnumerable<PenguinBlock> GetBlockList()
         {
-            
+            throw new PenguinException("");
         }
 
         /// <summary>

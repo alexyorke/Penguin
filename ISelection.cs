@@ -11,17 +11,17 @@ namespace Penguin
         /// Calculates if location is within selection bounds
         /// </summary>
         /// <param name="loc">Location to calculate</param>
-        public bool Contains(PenguinVector loc);
+        bool Contains(PenguinVector loc);
 
         /// <summary>
         /// Gets the selection area
         /// </summary>
-        public IEnumerable<PenguinVector> GetSelectionArea();
+        IEnumerable<PenguinVector> GetSelectionArea();
 
         /// <summary>
         /// Gets the everybody edits map
         /// </summary>
         /// <returns></returns>
-        public PenguinMap GetMap();
+        PenguinMap GetMap();
     }
 }

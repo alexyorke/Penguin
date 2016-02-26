@@ -337,8 +337,8 @@ namespace Penguin
                         //Check for 2 args
                         if (HasValidArguments(i, 2))
                         {
-                            Replace replace = new Replace(int.Parse(processedTokens[i + 1].Value[0]), int.Parse(processedTokens[i + 2].Value[0]));
-                            tasks.Add(replace);
+                            //Replace replace = new Replace(int.Parse(processedTokens[i + 1].Value[0]), int.Parse(processedTokens[i + 2].Value[0]));
+                            //tasks.Add(replace);
                         }
                     }
                     else if (processedTokens[i].Value[0].IsIn(EraseCommands))

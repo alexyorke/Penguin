@@ -14,14 +14,15 @@ namespace Penguin
 
         public int Z { get; set; }
 
-        public PenguinVector(int x, int y) : this(x, y, 0)
+        public PenguinVector(int x, int y)
         {
         }
 
-        public PenguinVector(int x, i)nt y, int z,  X = x;
+        public PenguinVector(int x, int y, int z) {
+            X = x;
         Y = y;
-
+        Z = z;
         }
         }
 }
-            Z = z;
+            

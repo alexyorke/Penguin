@@ -1,12 +1,7 @@
-﻿using PlayerIOClient;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Penguin
+﻿namespace PenguinSdk
 {
+    using PlayerIOClient;
+
     public static class PenguinHandler
     {
         public static void Initialize()

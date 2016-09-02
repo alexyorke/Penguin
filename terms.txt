@@ -53,9 +53,6 @@
 	"keyword": "up",
 	"b_ids": [2, 118, 120, 98, 99, 119, 369, 116]
 }, {
-	"keyword": "acceleration",
-	"b_ids": [2, 3]
-}, {
 	"keyword": "pushy",
 	"b_ids": [2]
 }, {
@@ -80,9 +77,6 @@
 	"keyword": "move it",
 	"b_ids": [3]
 }, {
-	"keyword": "boss to code",
-	"b_ids": [3]
-}, {
 	"keyword": "restricted area",
 	"b_ids": [3]
 }, {
@@ -101,9 +95,6 @@
 	"keyword": "space",
 	"b_ids": [4]
 }, {
-	"keyword": "floating",
-	"b_ids": [4]
-}, {
 	"keyword": "float",
 	"b_ids": [4, 119]
 }, {
@@ -114,7 +105,7 @@
 	"b_ids": [4]
 }, {
 	"keyword": "red",
-	"b_ids": [6, 26, 200, 23, 201, 374, 259, 12, 40, 16, 20, 51, 70, 79, 80, 81, 82, 62, 65, 218, 221, 84, 268, 129, 354, 355, 246]
+	"b_ids": [6, 26, 200, 23, 201, 374, 259, 12, 40, 20, 51, 70, 79, 80, 81, 82, 62, 65, 218, 221, 84, 268, 129, 354, 355, 246, 341]
 }, {
 	"keyword": "key",
 	"b_ids": [6, 7]
@@ -126,13 +117,13 @@
 	"b_ids": [6, 7]
 }, {
 	"keyword": "red door",
-	"b_ids": [6, 23]
+	"b_ids": [23]
 }, {
 	"keyword": "green",
 	"b_ids": [7, 27, 24, 251, 252, 233, 240, 258, 260, 14, 38, 17, 19, 34, 35, 36, 56, 74, 78, 82, 64, 219, 221, 91, 263, 128, 134, 379, 380, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 247]
 }, {
 	"keyword": "blue",
-	"b_ids": [8, 28, 25, 101, 242, 119, 256, 10, 15, 39, 17, 54, 72, 81, 63, 228, 69, 220, 85, 90, 264, 265, 131, 300, 354, 355, 375, 376, 245, 248]
+	"b_ids": [8, 28, 25, 101, 242, 119, 256, 10, 15, 39, 17, 54, 72, 81, 63, 228, 69, 220, 85, 90, 264, 265, 131, 300, 354, 355, 375, 376, 245, 248, 342]
 }, {
 	"keyword": "blue key",
 	"b_ids": [8]
@@ -191,9 +182,6 @@
 	"keyword": "switch door",
 	"b_ids": [185]
 }, {
-	"keyword": "switcher",
-	"b_ids": [185]
-}, {
 	"keyword": "headphones",
 	"b_ids": [200]
 }, {
@@ -206,10 +194,10 @@
 	"keyword": "zombie gate",
 	"b_ids": [206]
 }, {
-	"keyword": "unlocked",
+	"keyword": "unlock",
 	"b_ids": [206]
 }, {
-	"keyword": "locked",
+	"keyword": "lock",
 	"b_ids": [23, 24, 156, 184]
 }, {
 	"keyword": "red key",
@@ -236,11 +224,8 @@
 	"keyword": "timed door",
 	"b_ids": [156]
 }, {
-	"keyword": "closed",
-	"b_ids": [156, 184]
-}, {
 	"keyword": "close",
-	"b_ids": [156]
+	"b_ids": [156, 184]
 }, {
 	"keyword": "purple",
 	"b_ids": [184, 113, 11, 37, 18, 53, 71, 61, 266, 267, 133, 509]
@@ -292,6 +277,24 @@
 }, {
 	"keyword": "diamond",
 	"b_ids": [241]
+}, {
+	"keyword": "fish",
+	"b_ids": [576]
+}, {
+	"keyword": "seahorse",
+	"b_ids": [577]
+}, {
+	"keyword": "seaweed",
+	"b_ids": [578]
+}, {
+	"keyword": "weed",
+	"b_ids": [578]
+}, {
+	"keyword": "cod",
+	"b_ids": [576]
+}, {
+	"keyword": "octopus",
+	"b_ids": [575]
 }, {
 	"keyword": "fish bowl",
 	"b_ids": [241]
@@ -350,9 +353,6 @@
 	"keyword": "yellow",
 	"b_ids": [5, 121, 239, 258, 13, 41, 31, 22, 32, 57, 75, 78, 80, 66, 222, 270, 94, 130, 139, 377, 378]
 }, {
-	"keyword": "winner",
-	"b_ids": [5, 121]
-}, {
 	"keyword": "win",
 	"b_ids": [5, 121]
 }, {
@@ -374,9 +374,6 @@
 	"keyword": "initial point",
 	"b_ids": [255]
 }, {
-	"keyword": "starting",
-	"b_ids": [255]
-}, {
 	"keyword": "start",
 	"b_ids": [255]
 }, {
@@ -392,6 +389,9 @@
 	"keyword": "save",
 	"b_ids": [360]
 }, {
+	"keyword": "happy",
+	"b_ids": [36]
+},{
 	"keyword": "save point",
 	"b_ids": [360]
 }, {
@@ -459,7 +459,7 @@
 	"b_ids": [118, 120, 119, 369]
 }, {
 	"keyword": "brown",
-	"b_ids": [120, 369, 16, 20, 34, 35, 36, 22, 45, 47, 48, 66, 67, 59, 93, 94, 141, 370, 371, 372, 373]
+	"b_ids": [120, 369, 16, 20, 34, 35, 36, 22, 45, 47, 48, 67, 59, 93, 94, 141, 370, 371, 372, 373]
 }, {
 	"keyword": "rings",
 	"b_ids": [120]
@@ -474,7 +474,7 @@
 	"b_ids": [98, 99]
 }, {
 	"keyword": "water",
-	"b_ids": [119, 300]
+	"b_ids": [119, 300, 574]
 }, {
 	"keyword": "gravity up",
 	"b_ids": [119]
@@ -499,10 +499,7 @@
 }, {
 	"keyword": "swamp",
 	"b_ids": [369, 370, 371, 372, 373]
-}, {
-	"keyword": "trapped",
-	"b_ids": [369]
-}, {
+},{
 	"keyword": "trap",
 	"b_ids": [369, 114, 115, 116, 117]
 }, {
@@ -602,7 +599,7 @@
 	"keyword": "snow",
 	"b_ids": [249, 250]
 }, {
-	"keyword": "falling",
+	"keyword": "fall",
 	"b_ids": [249, 250]
 }, {
 	"keyword": "mountain",
@@ -626,7 +623,7 @@
 	"keyword": "fence",
 	"b_ids": [253, 254]
 }, {
-	"keyword": "spiked",
+	"keyword": "spike",
 	"b_ids": [253]
 }, {
 	"keyword": "spiked fence",
@@ -635,10 +632,6 @@
 	"keyword": "not spiked",
 	"b_ids": [254]
 }, {
-	"keyword": "no spikes",
-	"b_ids": [254]
-},
-	{
 	"keyword": "bush",
 	"b_ids": [233, 234, 235, 236, 237, 238, 239, 240]
 }, {
@@ -813,7 +806,7 @@
 	"keyword": "brown yellow",
 	"b_ids": [22]
 }, {
-	"keyword": "warning",
+	"keyword": "warn",
 	"b_ids": [22]
 }, {
 	"keyword": "black stripes",
@@ -828,12 +821,12 @@
 	"keyword": "expression",
 	"b_ids": [32]
 }, {
+	"keyword": "smiley",
+	"b_ids": [32]
+}, {
 	"keyword": "face",
 	"b_ids": [32]
-}, {
-	"keyword": "looking",
-	"b_ids": [32]
-}, {
+},{
 	"keyword": "look",
 	"b_ids": [32]
 }, {
@@ -870,16 +863,13 @@
 	"keyword": "point",
 	"b_ids": [46]
 }, {
-	"keyword": "pointed",
-	"b_ids": [46]
-}, {
 	"keyword": "light brown",
 	"b_ids": [47, 59, 137]
 }, {
 	"keyword": "pattern",
 	"b_ids": [47, 88]
 }, {
-	"keyword": "container",
+	"keyword": "contain",
 	"b_ids": [48, 49]
 }, {
 	"keyword": "scales",
@@ -923,9 +913,6 @@
 }, {
 	"keyword": "mineral",
 	"b_ids": [70, 71, 72, 73, 74, 75, 76]
-}, {
-	"keyword": "minerals",
-	"b_ids": [70]
 }, {
 	"keyword": "lime green",
 	"b_ids": [74]
@@ -1188,17 +1175,17 @@
 	"keyword": "lift",
 	"b_ids": [148]
 }, {
-	"keyword": "lifter",
+	"keyword": "lift",
 	"b_ids": [148]
 }, {
 	"keyword": "cylinder",
 	"b_ids": [149]
 }, {
+	"keyword": "eye",
+	"b_ids": [341, 342]
+}, {
 	"keyword": "conveyer",
 	"b_ids": [150, 151, 152, 153]
-}, {
-	"keyword": "timbered",
-	"b_ids": [154]
 }, {
 	"keyword": "timber",
 	"b_ids": [154]
@@ -1276,6 +1263,9 @@
 	"b_ids": [176, 177, 178, 179, 180, 181, 336]
 }, {
 	"keyword": "checker",
+	"b_ids": [186, 187, 188, 189, 190, 191, 192, 513, 514, 515, 516, 517, 518, 519, 520, 521, 548]
+}, {
+	"keyword": "checkered",
 	"b_ids": [186, 187, 188, 189, 190, 191, 192, 513, 514, 515, 516, 517, 518, 519, 520, 521, 548]
 }, {
 	"keyword": "monster",

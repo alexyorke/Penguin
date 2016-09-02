@@ -7,8 +7,8 @@
     <ProjectGuid>{D68BA38C-B01B-4E0C-A25E-2A69F62C838D}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Penguin</RootNamespace>
-    <AssemblyName>Penguin</AssemblyName>
+    <RootNamespace>PenguinSdk</RootNamespace>
+    <AssemblyName>PenguinSdk</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -32,15 +32,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL" />
     <Reference Include="NHunspell">
       <HintPath>packages\NHunspell.1.1.1\lib\net\NHunspell.dll</HintPath>
     </Reference>
-    <Reference Include="PlayerIOClient">
-      <HintPath>..\Rabbit\bin\Release\PlayerIOClient.dll</HintPath>
+    <Reference Include="PlayerIOClient, Version=2.3.6.0, Culture=neutral, PublicKeyToken=c7f7b730653f6a44, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>packages\PlayerIOClient-Signed.3.2.369\lib\PlayerIOClient.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -53,19 +51,27 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="As.cs" />
-    <Compile Include="ITask.cs" />
+    <Compile Include="Task.cs" />
     <Compile Include="KeywordDescription.cs" />
     <Compile Include="Config.cs" />
-    <Compile Include="Language.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Language.cs" />
     <Compile Include="ParsedMessage.cs" />
     <Compile Include="PenguinBlock.cs" />
+    <Compile Include="PenguinCoinDoor.cs" />
+    <Compile Include="PenguinCoinGate.cs" />
     <Compile Include="PenguinException.cs" />
     <Compile Include="ISelection.cs" />
-    <Compile Include="PenguinHandler.cs" />
+    <Compile Include="Penguin.cs" />
+    <Compile Include="PenguinIds.cs" />
     <Compile Include="PenguinMap.cs" />
+    <Compile Include="PenguinPercussion.cs" />
+    <Compile Include="PenguinPiano.cs" />
+    <Compile Include="PenguinPortal.cs" />
+    <Compile Include="PenguinRoomPortal.cs" />
+    <Compile Include="PenguinText.cs" />
     <Compile Include="RectangularSelection.cs" />
+    <Compile Include="TaskQueue.cs" />
+    <Compile Include="Tasks\Cancel.cs" />
     <Compile Include="Tasks\Undo.cs" />
     <Compile Include="Tasks\Erase.cs" />
     <Compile Include="Tasks\Fill.cs" />
@@ -93,6 +99,12 @@
     <Content Include="terms.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="EEPhysics-master\EEPhysics\EEPhysics.csproj">
+      <Project>{bf106fd2-1482-4d64-8df8-3fd5a883fab5}</Project>
+      <Name>EEPhysics</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

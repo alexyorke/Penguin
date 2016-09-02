@@ -1,54 +1,72 @@
-﻿using System;
-using System.Text;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="Token.cs" company="">
+//   
+// </copyright>
+// <summary>
+//   The token type.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
-namespace Penguin
+namespace PenguinSdk
 {
+    using System;
     using System.Collections.Generic;
+    using System.Text;
 
     /// <summary>
-    /// The token type.
+    ///     The token type.
     /// </summary>
     public enum TokenType
     {
-        Block,
+        /// <summary>
+        /// The block.
+        /// </summary>
+        Block, 
+
+        /// <summary>
+        /// The command.
+        /// </summary>
         Command
     }
 
+    /// <summary>
+    /// The token.
+    /// </summary>
     public class Token
     {
-        /// <summary>
-        /// Gets or sets the keyword descriptors.
-        /// </summary>
-        public KeywordDescription[] Descriptors { get; set; }
+        #region Constructors and Destructors
 
         /// <summary>
-        /// Gets the descriptor count.
+        ///     Initializes a new instance of the <see cref="Token" /> class.
         /// </summary>
-        public int DescriptorCount { get { return Descriptors != null ? Descriptors.Length : 0; } }
+        public Token()
+        {
+            this.Descriptors = new KeywordDescription[0];
+            this.Value = new string[0];
+        }
+
+        #endregion
+
+        #region Public Properties
 
         /// <summary>
-        /// Gets or sets the type.
+        ///     Gets the descriptor count.
         /// </summary>
-        public TokenType Type { get; set; }
-
-        /// <summary>
-        /// Unknown token value
-        /// </summary>
-        public bool IsUnknown { get; set; }
-
-        /// <summary>
-        /// Gets a value indicating whether the block description is ambigious.
-        /// </summary>
-        public bool IsAmbigious
+        public int DescriptorCount
         {
             get
             {
-                return this.Value != null && this.Value.Length > 1;
+                return this.Descriptors != null ? this.Descriptors.Length : 0;
             }
         }
 
         /// <summary>
-        /// Gets a value indicating whether the token has a value.
+        ///     Gets or sets the keyword descriptors.
+        /// </summary>
+        public KeywordDescription[] Descriptors { get; set; }
+
+        /// <summary>
+        ///     Gets a value indicating whether the token has a value.
         /// </summary>
         public bool HasValue
         {
@@ -59,161 +77,39 @@ namespace Penguin
         }
 
         /// <summary>
-        /// Gets or sets the value.
+        ///     Gets a value indicating whether the block description is ambigious.
+        /// </summary>
+        public bool IsAmbigious
+        {
+            get
+            {
+                return this.Value != null && this.Value.Length > 1;
+            }
+        }
+
+        /// <summary>
+        ///     Unknown token value
+        /// </summary>
+        public bool IsUnknown { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the type.
+        /// </summary>
+        public TokenType Type { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the value.
         /// </summary>
         public string[] Value { get; set; }
 
         /// <summary>
-        /// Gets the ambigious descriptor
+        ///     Processed Index
         /// </summary>
-        private KeywordDescription GetAmbiguity()
-        {
-            for (int i = 0; i < DescriptorCount; i++)
-            {
-                for (int j = 0; j < DescriptorCount; j++)
-                {
-                    if (Descriptors[i].Equals(Descriptors[j]))
-                    {
-                        return Descriptors[i];
-                    }
-                }
-            }
+        public int Index { get; set; }
 
-            return null;
-        }
+        #endregion
 
-        /// <summary>
-        /// Generates confirmation message for ambiguity
-        /// </summary>
-        /// <param name="config">Tokenizer configuration</param>
-        /// <returns>User friendly message</returns>
-        public string GetUserConfirmation(Config config)
-        {
-            if (IsUnknown)
-            {
-                if (Type == TokenType.Command)
-                {
-                    throw new PenguinException("Invalid token, token cannot be an unknown command.");
-                }
-
-                return "What type of block did you mean by \"" + Value[0] + "\"?";
-            }
-
-            List<string> currentOption = new List<string>();
-            List<List<string>> options = new List<List<string>>();
-
-            int occurance = 1;
-            KeywordDescription amgiguity = GetAmbiguity();
-            for (int i = 0; i < DescriptorCount; i++)
-            {
-                currentOption.Add(Descriptors[i].Keyword);
-                if (occurance % 2 == 0)
-                {
-                    occurance = 1;                   
-                    options.Add(new List<string>(currentOption));
-                    currentOption.Clear();
-                }
-
-                if (Descriptors[i].Equals(amgiguity))
-                {
-                    occurance++;
-                }            
-            }
-
-            var builder = new StringBuilder();
-            builder.Append(config.ConfirmationPrefix);
-            builder.Append(' ');
-            for (int i = 0; i < options.Count; i++)
-            {
-                string current = string.Join(" ", options[i]);
-                builder.Append(current);
-                if (i != options.Count - 1)
-                {
-                    builder.Append(" or ");
-                }
-            }
-
-            builder.Append("?");
-            return builder.ToString();
-        }
-
-        /// <summary>
-        /// Parses response from user
-        /// </summary>
-        /// <param name="tokenizer">The tokenizer</param>
-        /// <param name="response">The response</param>
-        /// <returns>If the parsed response was parsed</returns>
-        public bool ParseResponse(Tokenizer tokenizer, string response)
-        {
-            string responseClean = tokenizer.CleanRaw(response);
-
-            if (IsUnknown)
-            {
-                if (Type == TokenType.Command)
-                {
-                    throw new PenguinException("Invalid token, token cannot be an unknown command.");
-                }
-
-                Token token = tokenizer.GetToken(tokenizer.ProcessedTokens, responseClean.Split(' '));
-                if (token.HasValue)
-                {
-                    this.Descriptors = token.Descriptors;
-                    this.Value = token.Value;
-                    this.IsUnknown = false;
-                }
-
-                return token.HasValue;
-            }
-
-            var currentOption = new List<string>();
-            var options = new List<List<string>>();
-
-            int occurance = 1;
-            KeywordDescription amgiguity = GetAmbiguity();
-            for (int i = 0; i < DescriptorCount; i++)
-            {
-                currentOption.Add(Descriptors[i].Keyword);
-                if (occurance % 2 == 0)
-                {
-                    occurance = 1;
-                    options.Add(new List<string>(currentOption));
-                    currentOption.Clear();
-                }
-
-                if (Descriptors[i].Equals(amgiguity))
-                {
-                    occurance++;
-                }
-            }        
-
-            int position = 0;
-            for (int i = 0; i < options.Count; i++)
-            {
-                string optionName = string.Join(" ", options[i]);
-                if (string.Compare(optionName, responseClean, StringComparison.OrdinalIgnoreCase) == 0)
-                {
-                    KeywordDescription[] dest = new KeywordDescription[options[i].Count];
-                    Array.Copy(Descriptors, position, dest, 0, dest.Length);
-                    Descriptors = dest;
-
-                    Value = tokenizer.GetBlockToken(Descriptors).Value;
-                    return true;
-                }
-
-                position += options[i].Count;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Token"/> class.
-        /// </summary>
-        public Token()
-        {
-            Descriptors = new KeywordDescription[0];
-            Value = new string[0];
-        }
+        #region Public Methods and Operators
 
         /// <summary>
         /// Combine two tokens together.
@@ -239,17 +135,179 @@ namespace Penguin
 
             var result = new Token
                              {
-                                 Type = t1.Type,
+                                 Type = t1.Type, 
                                  Descriptors = new KeywordDescription[t1.DescriptorCount + t2.DescriptorCount]
                              };
 
             Array.Copy(t1.Descriptors, 0, result.Descriptors, 0, t1.DescriptorCount);
             Array.Copy(t2.Descriptors, 0, result.Descriptors, t1.DescriptorCount, t2.DescriptorCount);
-            
+
             result.Value = new string[t1.Value.Length + t2.Value.Length];
             Array.Copy(t1.Value, 0, result.Value, 0, t1.Value.Length);
             Array.Copy(t2.Value, 0, result.Value, t1.Value.Length, t2.Value.Length);
             return result;
         }
+
+        /// <summary>
+        /// Generates confirmation message for ambiguity
+        /// </summary>
+        /// <param name="config">
+        /// Tokenizer configuration
+        /// </param>
+        /// <returns>
+        /// User friendly message
+        /// </returns>
+        public string GetUserConfirmation(Config config)
+        {
+            if (this.IsUnknown)
+            {
+                if (this.Type == TokenType.Command)
+                {
+                    throw new PenguinException("Invalid token, token cannot be an unknown command.");
+                }
+
+                return "What type of block did you mean by \"" + this.Value[0] + "\"?";
+            }
+
+            var currentOption = new List<string>();
+            var options = new List<List<string>>();
+
+            int occurance = 1;
+            KeywordDescription amgiguity = this.GetAmbiguity();
+            for (int i = 0; i < this.DescriptorCount; i++)
+            {
+                currentOption.Add(this.Descriptors[i].Keyword);
+                if (occurance % 2 == 0)
+                {
+                    occurance = 1;
+                    options.Add(new List<string>(currentOption));
+                    currentOption.Clear();
+                }
+
+                if (this.Descriptors[i].Equals(amgiguity))
+                {
+                    occurance++;
+                }
+            }
+
+            var builder = new StringBuilder();
+            builder.Append(config.ConfirmationPrefix);
+            builder.Append(' ');
+            for (int i = 0; i < options.Count; i++)
+            {
+                string current = string.Join(" ", options[i]);
+                builder.Append(current);
+                if (i != options.Count - 1)
+                {
+                    builder.Append(" or ");
+                }
+            }
+
+            builder.Append("?");
+            return builder.ToString();
+        }
+
+        /// <summary>
+        /// Parses response from user
+        /// </summary>
+        /// <param name="tokenizer">
+        /// The tokenizer
+        /// </param>
+        /// <param name="response">
+        /// The response
+        /// </param>
+        /// <returns>
+        /// If the parsed response was parsed
+        /// </returns>
+        public bool ParseResponse(Tokenizer tokenizer, string response)
+        {
+            string responseClean = tokenizer.CleanRaw(response);
+
+            if (this.IsUnknown)
+            {
+                if (this.Type == TokenType.Command)
+                {
+                    throw new PenguinException("Invalid token, token cannot be an unknown command.");
+                }
+
+                Token token = tokenizer.GetToken(tokenizer.ProcessedTokens, responseClean.Split(' '));
+                if (token.HasValue)
+                {
+                    this.Descriptors = token.Descriptors;
+                    this.Value = token.Value;
+                    this.IsUnknown = false;
+                }
+
+                return token.HasValue;
+            }
+
+            var currentOption = new List<string>();
+            var options = new List<List<string>>();
+
+            int occurance = 1;
+            KeywordDescription amgiguity = this.GetAmbiguity();
+            for (int i = 0; i < this.DescriptorCount; i++)
+            {
+                currentOption.Add(this.Descriptors[i].Keyword);
+                if (occurance % 2 == 0)
+                {
+                    occurance = 1;
+                    options.Add(new List<string>(currentOption));
+                    currentOption.Clear();
+                }
+
+                if (this.Descriptors[i].Equals(amgiguity))
+                {
+                    occurance++;
+                }
+            }
+
+            int position = 0;
+            for (int i = 0; i < options.Count; i++)
+            {
+                string optionName = string.Join(" ", options[i]);
+                if (string.Compare(optionName, responseClean, StringComparison.OrdinalIgnoreCase) == 0)
+                {
+                    var dest = new KeywordDescription[options[i].Count];
+                    Array.Copy(this.Descriptors, position, dest, 0, dest.Length);
+                    this.Descriptors = dest;
+
+                    this.Value = tokenizer.GetBlockToken(this.Descriptors).Value;
+                    return true;
+                }
+
+                position += options[i].Count;
+            }
+
+            return false;
+        }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Gets the ambigious descriptor
+        /// </summary>
+        /// <returns>
+        /// The <see cref="KeywordDescription"/>.
+        /// </returns>
+        private KeywordDescription GetAmbiguity()
+        {
+            for (int i = 0; i < this.DescriptorCount; i++)
+            {
+                for (int j = 0; j < this.DescriptorCount; j++)
+                {
+                    if (this.Descriptors[i].Equals(this.Descriptors[j]))
+                    {
+                        return this.Descriptors[i];
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        #endregion
     }
 }

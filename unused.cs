@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Penguin
+﻿namespace PenguinSdk
 {
     class unused
     {
@@ -233,3 +227,132 @@ namespace Penguin
             return searchDb.Count(thisItem => thisItem.Contains(searchTerm));
         }
 */
+
+
+/*
+        /// <summary>
+        /// Parse function to be called after block id's have been tokenized.
+        ///     This means that this function compiles the phrase into Iceberg.
+        /// </summary>
+        /// <param name="thePhrase">
+        /// </param>
+        /// <returns>
+        /// The <see cref="string[]"/>.
+        /// </returns>
+        private StringBuilder Parse(string thePhrase)
+        {
+            string[] englishNumbers =
+                As.TheWordsOf(
+                    "one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty");
+
+            string currentBlock = null;
+            bool inReplaceAll = false;
+            bool inReplace = false;
+            bool inRemove = false;
+            string[] separatedQuery = thePhrase.Split(' ');
+            var processed = new StringBuilder();
+
+            for (int i = 0; i < separatedQuery.Length; i++)
+            {
+                string thisItem = separatedQuery[i];
+
+                if (i < separatedQuery.Length - 1)
+                {
+                    if (thisItem.IsIn(ReplaceCommands) && separatedQuery[i + 1].IsIn("all", "al"))
+                    {
+                        // this expression always evaluates to false apparently
+                        if (inReplace)
+                        {
+                            // always false apparently :p
+                            // set end of processed to "REPLACE_ALL:"
+                            processed.AppendLine("REPLACE_ALL:");
+                            inReplace = false;
+                        }
+
+                        inReplaceAll = true;
+                    }
+                }
+
+                if (thisItem.IsIn(ReplaceCommands))
+                {
+                    processed.AppendLine("REPLACE:");
+                    inReplace = true;
+                }
+
+                if (thisItem.IsIn(EraseCommands))
+                {
+                    processed.AppendLine("DELETE:");
+                    inRemove = true; // make sure to check if we are in a function
+
+                    // so that the "->" can be added correctly.
+                }
+
+                // Got it here I think
+                if (thisItem.Is("with"))
+                {
+                    processed.AppendLine("->");
+                }
+
+                if (thisItem.IsIn("and", "then"))
+                {
+                    processed.AppendLine(thisItem);
+                    if (!inReplaceAll && !inReplace && !inRemove)
+                    {
+                        processed.AppendLine("return");
+                    }
+
+                    currentBlock = thisItem;
+                }
+
+                if (thisItem.IsIn(BlockReferenceKeywords))
+                {
+                    processed.AppendLine(currentBlock); // use the current block that
+
+                    // was mentioned the last time.
+                }
+
+                if (thisItem.IsIn(MoveCommands))
+                {
+                    processed.AppendLine("return");
+                    processed.AppendLine("MOVE:");
+                }
+
+                if (thisItem.IsIn("left", "up") && separatedQuery.HasNext(i))
+                {
+                    processed.AppendLine("->-");
+
+                    // Optimization instead of checking if exists then finding index,
+                    // just check if index is not -1
+                    int possibleNumIndex = this.ItemOffset(separatedQuery[i + 1], englishNumbers);
+                    if (possibleNumIndex != -1)
+                    {
+                        // add a coordinate (y coordiante) if moving left or right
+                        int number = possibleNumIndex + 1; // one is at 0th index
+                        processed.AppendLine(number.ToString(CultureInfo.InvariantCulture));
+
+                        processed.AppendLine(thisItem.Is("up") ? "Y" : "X");
+                    }
+                }
+
+                if (thisItem.IsIn("down", "right") && separatedQuery.HasNext(i))
+                {
+                    processed.AppendLine("->");
+                    int possibleNumIndex = this.ItemOffset(separatedQuery[i + 1], englishNumbers);
+                    if (possibleNumIndex != -1)
+                    {
+                        int number = possibleNumIndex + 1; // one is at 0th index
+                        processed.AppendLine(number.ToString(CultureInfo.InvariantCulture));
+                        processed.AppendLine(thisItem.Is("down") ? "X" : "Y");
+                    }
+                }
+
+                if (thisItem.IsIn(CancelCommands))
+                {
+                    processed.AppendLine("CANCEL_LAST_COMMAND");
+                }
+            }
+
+            return processed;
+        }
+*/
+

@@ -6,7 +6,7 @@
 //   The script.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
-namespace Penguin
+namespace PenguinSdk
 {
     // THE entire program will do something like this:
     /*
@@ -37,7 +37,6 @@ namespace Penguin
      * - Locates and identifies syntax errors
      */
 
-
     /*
      * Marquee stuff (to make replace a bit more interesting):
      * Given an initial coordinate at the top left hand side and another secondary
@@ -49,6 +48,7 @@ namespace Penguin
      * (x1,y2) which would govern an area of (x2-x1)*(y2-y1) blocks
      * 
      */
+
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -56,7 +56,9 @@ namespace Penguin
     using System.Text;
 
     using NHunspell;
-    using Penguin.Tasks;
+
+    using EEPhysics;
+    using PenguinSdk.Tasks;
 
     /// <summary>
     ///     The ask user.
@@ -66,14 +68,44 @@ namespace Penguin
     /// </param>
     public delegate void UserMessageHandler(string message);
 
+    /// <summary>
+    /// The message parsed handler.
+    /// </summary>
+    /// <param name="message">
+    /// The message.
+    /// </param>
     public delegate void MessageParsedHandler(ParsedMessage message);
 
+    /// <summary>
+    /// The replace event handler.
+    /// </summary>
+    /// <param name="sourceID">
+    /// The source id.
+    /// </param>
+    /// <param name="replaceID">
+    /// The replace id.
+    /// </param>
     public delegate void ReplaceEventHandler(int sourceID, int replaceID);
 
+    /// <summary>
+    /// The fill event handler.
+    /// </summary>
+    /// <param name="blockID">
+    /// The block id.
+    /// </param>
     public delegate void FillEventHandler(int blockID);
 
+    /// <summary>
+    /// The delete event handler.
+    /// </summary>
+    /// <param name="blockID">
+    /// The block id.
+    /// </param>
     public delegate void DeleteEventHandler(int blockID);
 
+    /// <summary>
+    /// The undo event handler.
+    /// </summary>
     public delegate void UndoEventHandler();
 
     /// <summary>
@@ -84,63 +116,68 @@ namespace Penguin
         #region Static Fields
 
         /// <summary>
-        /// The cancel commands.
+        ///     The cancel commands.
         /// </summary>
         public static readonly string[] CancelCommands = { "cancel", "stop", "halt", "abort", "staph" };
 
         /// <summary>
-        /// The erase commands.
+        ///     The erase commands.
         /// </summary>
         public static readonly string[] EraseCommands =
-        {
-            "erase", "remove", "vanish", "disappear", "delete", "nullify", 
-            "void", "expunge", "abolish", "eliminate"
-        };
+            {
+                "erase", "remove", "vanish", "disappear", "delete", "nullify", 
+                "void", "expunge", "abolish", "eliminate"
+            };
 
         /// <summary>
-        /// The fill commands.
+        ///     The fill commands.
         /// </summary>
         public static readonly string[] FillCommands = { "fill", "pad", "bucket" };
 
         /// <summary>
-        /// The find commands.
+        ///     The find commands.
         /// </summary>
         public static readonly string[] FindCommands = { "find", "locate", "see", "observe", "hunt", "seek" };
 
         /// <summary>
-        /// The move commands.
+        ///     The move commands.
         /// </summary>
         public static readonly string[] MoveCommands = { "move", "push" };
 
         /// <summary>
-        /// The reference keywords.
+        /// Command joint keywords
         /// </summary>
-        public static readonly string[] ReferenceKeywords = { "these", "those", "them", "it", "that" };
+        public static readonly string[] CommandJointKeywords = { "and" };
 
         /// <summary>
-        /// The replace commands.
+        ///     The block reference keywords.
+        /// </summary>
+        public static readonly string[] BlockReferenceKeywords = { "these", "those", "them", "it", "that" };
+
+        /// <summary>
+        ///     The replace commands.
         /// </summary>
         public static readonly string[] ReplaceCommands =
-        {
-            "replace", "change", "restore", "compensate", "patch", 
-            "alter"
-        };
+            {
+                "replace", "change", "restore", "compensate", "patch", 
+                "alter"
+            };
 
         /// <summary>
-        /// The undo commands.
+        ///     The undo commands.
         /// </summary>
         public static readonly string[] UndoCommands =
-        {
-            "undo", "back", "free", "reverse", "revert", "reappear", 
-            "rewind", "was"
-        };
+            {
+                "undo", "back", "free", "reverse", "revert", "reappear", 
+                "rewind"
+            };
 
         #endregion
 
         #region Fields
 
         /// <summary>
-        ///     List of all combined categories of commands
+        ///     List of all combined categories of commands (NOT KEYWORDS)
         /// </summary>
         private readonly string[] Commands = As.Combine(
             ReplaceCommands, 
@@ -154,7 +191,7 @@ namespace Penguin
         /// <summary>
         ///     Queue for ambigious tokens
         /// </summary>
-        private readonly Queue<Token> ambigiousTokens;
+        private readonly List<Token> ambigiousTokens;
 
         /// <summary>
         ///     English spell checker
@@ -172,6 +209,11 @@ namespace Penguin
         private readonly KeywordDescription[] descriptions;
 
         /// <summary>
+        ///     Task queue
+        /// </summary>
+        private readonly TaskQueue taskQueue;
+
+        /// <summary>
         ///     Translator resource
         /// </summary>
         private readonly Translator translator;
@@ -187,23 +229,24 @@ namespace Penguin
         private string processedMessage;
 
         /// <summary>
-        /// Raw message
+        ///     The processed tokens.
+        /// </summary>
+        private List<Token> processedTokens;
+
+        /// <summary>
+        ///     Raw message
         /// </summary>
         private string rawMessage;
 
         /// <summary>
-        /// The processed tokens.
+        ///     Penguin selection
         /// </summary>
-        private List<Token> processedTokens;
-
-        #endregion
-
-        #region Properties And Events
+        private ISelection selection;
 
         /// <summary>
-        /// Event for when message from the user is parsed
+        ///     Physics world
         /// </summary>
-        public event MessageParsedHandler OnMessageParsed;
+        private PhysicsWorld world;
 
         #endregion
 
@@ -226,8 +269,18 @@ namespace Penguin
             this.checker = new Hunspell("en_US.aff", "en_US.dic");
             this.translator = new Translator(config.Language);
 
-            this.ambigiousTokens = new Queue<Token>();
+            this.ambigiousTokens = new List<Token>();
+            this.taskQueue = new TaskQueue();
         }
+
+        #endregion
+
+        #region Public Events
+
+        /// <summary>
+        ///     Event for when message from the user is parsed
+        /// </summary>
+        public event MessageParsedHandler OnMessageParsed;
 
         #endregion
 
@@ -248,6 +301,11 @@ namespace Penguin
         ///     Username penguin is talking to
         /// </summary>
         public string TalkingTo { get; set; }
+
+        /// <summary>
+        ///     Username ID penguin is talking to
+        /// </summary>
+        public int TalkingToId { get; set; }
 
         #endregion
 
@@ -301,109 +359,6 @@ namespace Penguin
             {
                 this.checker.Dispose();
             }
-        }
-
-        /// <summary>
-        /// The finalize processing.
-        /// </summary>
-        public void FinalizeProcessing()
-        {
-            // (4.5) replace the in-text block descriptions with block ids
-            var tokenizedMessage = new StringBuilder();
-            for (int i = 0; i < this.processedTokens.Count; i++)
-            {
-                tokenizedMessage.Append(string.Join(" ", this.processedTokens[i].Value));
-                if (i != this.processedTokens.Count - 1)
-                {
-                    tokenizedMessage.Append(' ');
-                }
-            }
-
-            // (6) That phrase then goes through the Penguin parser which:
-            // * - Identifies keywords such as "remove" and "replace" and generates corresponding iceberg code
-            // * - Locates and identifies syntax errors
-            ParsedMessage message = new ParsedMessage();
-            message.Value = tokenizedMessage.ToString();
-            message.RawMessage = rawMessage;
-            message.Tokens = processedTokens.ToArray();
-
-            List<ITask> tasks = new List<ITask>();
-            for (int i = 0; i < processedTokens.Count; i++)
-            {
-                if (processedTokens[i].Type == TokenType.Command)
-                {
-                    if (processedTokens[i].Value[0].IsIn(ReplaceCommands))
-                    {
-                        //Check for 2 args
-                        if (HasValidArguments(i, 2))
-                        {
-                            //Replace replace = new Replace(int.Parse(processedTokens[i + 1].Value[0]), int.Parse(processedTokens[i + 2].Value[0]));
-                            //tasks.Add(replace);
-                        }
-                    }
-                    else if (processedTokens[i].Value[0].IsIn(EraseCommands))
-                    {
-                        //Check for 1 args
-                        if (HasValidArguments(i, 1))
-                        {
-                            Erase erase = new Erase(int.Parse(processedTokens[i + 1].Value[0]));
-                            tasks.Add(erase);
-                        }
-                    }
-                    else if (processedTokens[i].Value[0].IsIn(FindCommands))
-                    {
-                        //Check for 1 args
-                        if (HasValidArguments(i, 1))
-                        {
-
-                        }
-                    }
-                    else if (processedTokens[i].Value[0].IsIn(MoveCommands))
-                    {
-                        //Check for 2 args
-                        
-                    }
-                    else if (processedTokens[i].Value[0].IsIn(UndoCommands))
-                    {
-                        //Check for 0 args
-                        Undo undo = new Undo();
-                        tasks.Add(undo);
-                    }
-                    else if (processedTokens[i].Value[0].IsIn(CancelCommands))
-                    {
-                        //Check for 0 args
-                    }
-                }
-            }
-
-            message.Tasks = tasks.ToArray();
-            if (OnMessageParsed != null)
-            {
-                OnMessageParsed(message);
-            }
-        } 
-
-        /// <summary>
-        /// Checks to see if a command has enough arguments to execute
-        /// </summary>
-        /// <param name="index">Index of the command</param>
-        /// <param name="args">Block Arguments needed</param>
-        public bool HasValidArguments(int index, int args)
-        {
-            int count = 0;
-            for (int i = index; i < processedTokens.Count; i++)
-            {
-                if (processedTokens[i].Type == TokenType.Block)
-                {
-                    count++;
-                    if (count >= args)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -475,6 +430,31 @@ namespace Penguin
         }
 
         /// <summary>
+        /// Gets the last task exluding T
+        /// </summary>
+        /// <typeparam name="T">
+        /// Type to exclude
+        /// </typeparam>
+        /// <returns>
+        /// The <see cref="Task"/>.
+        /// </returns>
+        public List<Task> GetFinished()
+        {
+            return this.taskQueue.GetFinished();
+        }
+
+        /// <summary>
+        /// Get running task excluding T
+        /// </summary>
+        /// <returns>
+        /// The <see cref="Task"/>.
+        /// </returns>
+        public List<Task> GetRunning()
+        {
+            return this.taskQueue.GetRunning();
+        }
+
+        /// <summary>
         /// The block searcher. Returns a list of relavent blocks depending on the search token.
         ///     The search token is an array that contains search terms.
         /// </summary>
@@ -501,7 +481,7 @@ namespace Penguin
                     return token;
                 }
 
-                if (searchTerm[0].IsIn(ReferenceKeywords))
+                if (searchTerm[0].IsIn(BlockReferenceKeywords))
                 {
                     for (int i = processed.Count - 1; i >= 0; i--)
                     {
@@ -512,9 +492,22 @@ namespace Penguin
                     }
 
                     token.Type = TokenType.Block;
-                    token.Value = new[] { searchTerm[0].ToLowerInvariant() }; ;
+                    token.Value = new[] { searchTerm[0].ToLowerInvariant() };
+                    
                     token.IsUnknown = true;
                     return token;
+                }
+
+                if (searchTerm[0].IsIn(CommandJointKeywords))
+                {
+                    //Search for previous command, otherwise ignore
+                    for (int i = processed.Count - 1; i >= 0; i--)
+                    {
+                        if (processed[i].Type == TokenType.Command)
+                        {
+                            return processed[i];
+                        }
+                    }
                 }
             }
 
@@ -535,18 +528,19 @@ namespace Penguin
             }
 
             var combined = new Token();
-            for (int i = processed.Count - 1; i >= 0; i--)
-            {
-                if (processed[i].DescriptorCount > 1)
+            if (potentialMatches.Length > 0)
+            {                
+                for (int i = processed.Count - 1; i >= 0; i--)
                 {
-                    for (int j = processed[i].DescriptorCount - 1; j >= 0; j--)
+                    if (processed[i].DescriptorCount > 1)
                     {
-                        Token blockToken = this.GetBlockToken(new[] { potentialMatches[0], processed[i].Descriptors[j] });
-                        if (blockToken != null)
+                        for (int j = processed[i].DescriptorCount - 1; j >= 0; j--)
                         {
-                            combined = Token.Combine(
-                                combined, 
-                                blockToken);
+                            Token blockToken = this.GetBlockToken(new[] { potentialMatches[0], processed[i].Descriptors[j] });
+                            if (blockToken != null)
+                            {
+                                combined = Token.Combine(combined, blockToken);
+                            }
                         }
                     }
                 }
@@ -573,123 +567,105 @@ namespace Penguin
         /// <summary>
         /// Handles a PlayerIO player message (step one)
         /// </summary>
-        /// <param name="username">
-        /// Username speaking
+        /// <param name="usernameId">
+        /// The username Id.
         /// </param>
         /// <param name="phrase">
         /// Message from the user
         /// </param>
         /// <param name="callback">
         /// </param>
-        public void HandlePhrase(string username, string phrase, UserMessageHandler callback)
+        public void HandlePhrase(int usernameId, string phrase, UserMessageHandler callback)
         {
-            if (this.TalkingTo != null)
+            if (world != null && world.Players.ContainsKey(usernameId))
             {
-                switch (string.Compare(this.TalkingTo, username, StringComparison.OrdinalIgnoreCase))
+                string username = this.world.Players[usernameId].Name;
+                if (this.TalkingTo != null)
                 {
-                    case 0:
-                        if (this.ambigiousTokens.Count > 0)
-                        {
-                            Token waiting = this.ambigiousTokens.Peek();
-                            string translatedResponse = translator.Translate(phrase, config.Language, "English");
-                            if (waiting.ParseResponse(this, translatedResponse))
+                    switch (string.Compare(this.TalkingTo, username, StringComparison.OrdinalIgnoreCase))
+                    {
+                        case 0:
+                            if (this.ambigiousTokens.Count > 0)
                             {
-                                this.processedTokens.Add(waiting);
-
-                                this.ambigiousTokens.Dequeue();
-                                if (this.ambigiousTokens.Count > 0)
+                                Token waiting = this.ambigiousTokens[0];
+                                string translatedResponse = this.translator.Translate(
+                                    phrase, 
+                                    this.config.Language, 
+                                    "English");
+                                if (waiting.ParseResponse(this, translatedResponse))
                                 {
-                                    Token next = this.ambigiousTokens.Peek();
-                                    string question = next.GetUserConfirmation(this.config);
-                                    string translatedQuestion = this.translator.Translate(
-                                        question,
-                                        "English",
+                                    this.processedTokens.Add(waiting);
+
+                                    this.ambigiousTokens.RemoveAt(0);
+                                    if (this.ambigiousTokens.Count > 0)
+                                    {
+                                        Token next = this.ambigiousTokens[0];
+                                        string question = next.GetUserConfirmation(this.config);
+                                        string translatedQuestion = this.translator.Translate(
+                                            question, 
+                                            "English", 
+                                            this.config.Language);
+                                        callback(translatedQuestion);
+
+                                        // Cant finalize processing yet, return.
+                                        return;
+                                    }
+                                }
+                                else
+                                {
+                                    // Translate config message
+                                    int length = this.config.MisunderstoodMessages.Length;
+                                    string misunderstoodMessage =
+                                        this.config.MisunderstoodMessages[this.config.Random.Next(length)];
+                                    string translatedMisundersoodMessage = this.translator.Translate(
+                                        misunderstoodMessage, 
+                                        "English", 
                                         this.config.Language);
-                                    callback(translatedQuestion);
+                                    callback(translatedMisundersoodMessage);
 
                                     // Cant finalize processing yet, return.
                                     return;
                                 }
                             }
-                            else
-                            {
-                                //Translate config message
-                                int length = config.MisunderstoodMessages.Length;
-                                string misunderstoodMessage = config.MisunderstoodMessages[config.Random.Next(length)];
-                                string translatedMisundersoodMessage = translator.Translate(misunderstoodMessage, "English", config.Language);
-                                callback(translatedMisundersoodMessage);
 
-                                // Cant finalize processing yet, return.
-                                return;
-                            }
-                        }
-                        this.FinalizeProcessing();
-                        break;
-                    default:
-                        return;
+                            this.FinalizeProcessing();
+                            break;
+                        default:
+                            return;
+                    }
                 }
-            }
 
-            this.ProcessPhrase(username, phrase, callback);
+                this.ProcessPhrase(usernameId, phrase, callback);
+            }
         }
 
         /// <summary>
-        /// The run pseudo.
+        /// Loads a map for the tokenizer to use for processing
         /// </summary>
-        /// <param name="username">
+        /// <param name="map">
+        /// Map to use
         /// </param>
-        /// <param name="rawMessage">
-        /// The raw message.
+        /// <param name="world">
+        /// The world.
         /// </param>
-        /// <param name="callback">
-        /// User confirmation callback
-        /// </param>
-        public void ProcessPhrase(string username, string rawMessage, UserMessageHandler callback)
+        public void Load(PenguinMap map, PhysicsWorld world)
         {
-            this.TalkingTo = username;
-            this.rawMessage = rawMessage;
+            this.selection = new RectangularSelection(map);
+            this.world = world;
+        }
 
-            // (2) Translate raw message into english
-            string translatedMessage = translator.Translate(rawMessage, config.Language, "English");
-
-            // (2.1) Remove punctuation and clean message from excess whitespace and other garbage
-            string message = this.CleanRaw(translatedMessage);
-
-            // (4) This command is then goes through the first stage parser which tokenizes the keywords.
-            // (4.1) Each word is checked for proper spelling
-            string[] words = message.Split(' ');
-            for (int i = 0; i < words.Length; i++)
-            {
-                string word = words[i];
-
-                var suggestions = new List<string>();
-                if (!this.translator.CheckSpelling(this.checker, word, out suggestions) && suggestions.Count > 0)
-                {
-                    words[i] = suggestions[0];
-                }
-            }
-
-            // Final spell checked word
-            message = string.Join(" ", words);
-
-            // (4.2) checks if it exists in any of the block descriptions
-            // (4.3) if it does then add it to the token
-            this.processedTokens = new List<Token>(this.TokenizeKeywords(message, out this.processedIndicies));
-            this.processedMessage = message;
-
-            if (this.ambigiousTokens.Count > 0)
-            {
-                // Start asking user
-                Token next = this.ambigiousTokens.Peek();
-                string question = next.GetUserConfirmation(this.config);
-                string translatedQuestion = this.translator.Translate(question, "English", this.config.Language);
-                callback(translatedQuestion);
-            }
-            else
-            {
-                // No ambiguity, continue processing
-                this.FinalizeProcessing();
-            }
+        /// <summary>
+        /// Queues the task to be run
+        /// </summary>
+        /// <param name="task">
+        /// Task to queue
+        /// </param>
+        /// <param name="runAysnc">
+        /// The run Aysnc.
+        /// </param>
+        public void QueueTask(Task task, bool runAysnc)
+        {
+            this.taskQueue.Queue(task, runAysnc);
         }
 
         /// <summary>
@@ -712,7 +688,8 @@ namespace Penguin
             var final = new List<string[]>();
             var tmp = new List<string>();
 
-            for (int i = 0; i < thePhraseWords.Length; i++)
+            int i = 0;
+            while (i < thePhraseWords.Length)
             {
                 // this is the tokenizer. It looks for a word that exists in the search
                 // terms and checks if the next word is also in the search term. If so,
@@ -720,6 +697,11 @@ namespace Penguin
                 // terms. If it is then it creates a token with that block description in it,
                 // and breaks when there are more than three words or the next word is not contained
                 // in the search list.
+                if (this.RecursiveFind(thePhraseWords[i]))
+                {
+                    tmp.Add(thePhraseWords[i]);
+                }
+
                 int count = 0;
                 while (i < thePhraseWords.Length)
                 {
@@ -735,28 +717,32 @@ namespace Penguin
                     }
                 }
 
-                if (count == 0 && this.RecursiveFind(thePhraseWords[i]))
-                {
-                    tmp.Add(thePhraseWords[i]);
-                }
 
                 if (tmp.Count <= 0)
                 {
+                    i++;
                     continue;
                 }
 
                 indicies.Add(i - count, count);
                 final.Add(tmp.ToArray());
                 tmp.Clear();
+
+                if (count == 0)
+                {
+                    i++;
+                }
             }
 
             var processed = new List<Token>();
-            for (int i = 0; i < final.Count; i++)
+            for (int j = 0; j < final.Count; j++)
             {
-                Token t = this.GetToken(processed, final[i]);
+                Token t = this.GetToken(processed, final[j]);
+                t.Index = j;
+
                 if (t.IsAmbigious || t.IsUnknown)
                 {
-                    this.ambigiousTokens.Enqueue(t);
+                    this.ambigiousTokens.Add(t);
                 }
                 else
                 {
@@ -770,6 +756,142 @@ namespace Penguin
         #endregion
 
         #region Methods
+
+        /// <summary>
+        ///     The finalize processing.
+        /// </summary>
+        private void FinalizeProcessing()
+        {
+            // (4.5) replace the in-text block descriptions with block ids
+            var tokenizedMessage = new StringBuilder();
+            for (int i = 0; i < this.processedTokens.Count; i++)
+            {
+                tokenizedMessage.Append(string.Join(" ", this.processedTokens[i].Value));
+                if (i != this.processedTokens.Count - 1)
+                {
+                    tokenizedMessage.Append(' ');
+                }
+            }
+
+            // (6) That phrase then goes through the Penguin parser which:
+            // * - Identifies keywords such as "remove" and "replace" and generates corresponding iceberg code
+            // * - Locates and identifies syntax errors
+            var message = new ParsedMessage();
+            message.Caller = this.world.Players[this.TalkingToId];
+            message.Value = tokenizedMessage.ToString();
+            message.RawMessage = this.rawMessage;
+            message.Tokens = this.processedTokens.ToArray();
+
+            var tasks = new List<Task>();
+            for (int i = 0; i < this.processedTokens.Count; i++)
+            {
+                if (this.processedTokens[i].Type == TokenType.Command)
+                {
+                    if (this.processedTokens[i].Value[0].IsIn(ReplaceCommands))
+                    {
+                        // Check for 2 args
+                        if (this.HasValidArguments(i, 2))
+                        {
+                            var replace = new Replace(
+                                this, 
+                                this.selection, 
+                                int.Parse(this.processedTokens[i + 1].Value[0]), 
+                                int.Parse(this.processedTokens[i + 2].Value[0]));
+                            tasks.Add(replace);
+                        }
+                    }
+                    else if (this.processedTokens[i].Value[0].IsIn(EraseCommands))
+                    {
+                        // Check for 1 args
+                        if (this.HasValidArguments(i, 1))
+                        {
+                            var erase = new Erase(this, this.selection, int.Parse(this.processedTokens[i + 1].Value[0]));
+                            tasks.Add(erase);
+                        }
+                    }
+                    else if (this.processedTokens[i].Value[0].IsIn(FillCommands))
+                    {
+                        // Check for 1 args
+                        if (this.HasValidArguments(i, 1))
+                        {
+                            int posX = (int)Math.Round(message.Caller.X / 16.0);
+                            int posY = (int)Math.Round(message.Caller.Y / 16.0);
+                            var fill = new Fill(this, this.selection, int.Parse(this.processedTokens[i + 1].Value[0]), posX, posY);
+                            tasks.Add(fill);
+                        }
+                    }
+                    else if (this.processedTokens[i].Value[0].IsIn(FindCommands))
+                    {
+                        // Check for 1 args
+                        if (this.HasValidArguments(i, 1))
+                        {
+                        }
+                    }
+                    else if (this.processedTokens[i].Value[0].IsIn(MoveCommands))
+                    {
+                        // Check for 2 args
+                    }
+                    else if (this.processedTokens[i].Value[0].IsIn(UndoCommands))
+                    {
+                        // Check for 0 args
+                        var undo = new Undo(this, this.selection);
+                        tasks.Add(undo);
+                    }
+                    else if (this.processedTokens[i].Value[0].IsIn(CancelCommands))
+                    {
+                        // Check for 0 args
+                        var cancel = new Cancel(this, this.selection);
+                        tasks.Add(cancel);
+                    }
+                }
+            }
+
+            message.Tasks = tasks.ToArray();
+            this.TalkingTo = null;
+            this.TalkingToId = -1;
+            if (this.OnMessageParsed != null)
+            {
+                this.OnMessageParsed(message);
+            }
+        }
+
+        /// <summary>
+        /// Checks to see if a command has enough arguments to execute
+        /// </summary>
+        /// <param name="index">
+        /// Index of the command
+        /// </param>
+        /// <param name="args">
+        /// Block Arguments needed
+        /// </param>
+        /// <returns>
+        /// The <see cref="bool"/>.
+        /// </returns>
+        private bool HasValidArguments(int index, int args)
+        {
+            int count = 0;
+            for (int i = index + 1; i <= index + args; i++)
+            {
+                if (i >= processedTokens.Count)
+                {
+                    return false;
+                }
+                else if (this.processedTokens[i].Type == TokenType.Block)
+                {
+                    count++;
+                    if (count >= args)
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// The item offset. The offset of an item in a list.
@@ -798,128 +920,93 @@ namespace Penguin
         }
 
         /// <summary>
-        /// Parse function to be called after block id's have been tokenized.
-        ///     This means that this function compiles the phrase into Iceberg.
+        /// The run pseudo.
         /// </summary>
-        /// <param name="thePhrase">
+        /// <param name="usernameId">
+        /// The username Id.
         /// </param>
-        /// <returns>
-        /// The <see cref="string[]"/>.
-        /// </returns>
-        private StringBuilder Parse(string thePhrase)
+        /// <param name="rawMessage">
+        /// The raw message.
+        /// </param>
+        /// <param name="callback">
+        /// User confirmation callback
+        /// </param>
+        private void ProcessPhrase(int usernameId, string rawMessage, UserMessageHandler callback)
         {
-            string[] englishNumbers =
-                As.TheWordsOf(
-                    "one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty");
+            this.TalkingToId = usernameId;
+            this.TalkingTo = this.world.Players[usernameId].Name;
+            this.rawMessage = rawMessage;
 
-            string currentBlock = null;
-            bool inReplaceAll = false;
-            bool inReplace = false;
-            bool inRemove = false;
-            string[] separatedQuery = thePhrase.Split(' ');
-            var processed = new StringBuilder();
+            // (2) Translate raw message into english
+            string translatedMessage = this.translator.Translate(rawMessage, this.config.Language, "English");
 
-            for (int i = 0; i < separatedQuery.Length; i++)
+            // (2.1) Remove punctuation and clean message from excess whitespace and other garbage
+            string message = this.CleanRaw(translatedMessage);
+
+            // (4) This command is then goes through the first stage parser which tokenizes the keywords.
+            // (4.1) Each word is checked for proper spelling
+            string[] words = message.Split(' ');
+            for (int i = 0; i < words.Length; i++)
             {
-                string thisItem = separatedQuery[i];
+                string word = words[i];
 
-                if (i < separatedQuery.Length - 1)
+                var suggestions = new List<string>();
+                if (!this.translator.CheckSpelling(this.checker, word, out suggestions) && suggestions.Count > 0)
                 {
-                    if (thisItem.IsIn(ReplaceCommands) && separatedQuery[i + 1].IsIn("all", "al"))
-                    {
-                        // this expression always evaluates to false apparently
-                        if (inReplace)
-                        {
-                            // always false apparently :p
-                            // set end of processed to "REPLACE_ALL:"
-                            processed.AppendLine("REPLACE_ALL:");
-                            inReplace = false;
-                        }
-
-                        inReplaceAll = true;
-                    }
-                }
-
-                if (thisItem.IsIn(ReplaceCommands))
-                {
-                    processed.AppendLine("REPLACE:");
-                    inReplace = true;
-                }
-
-                if (thisItem.IsIn(EraseCommands))
-                {
-                    processed.AppendLine("DELETE:");
-                    inRemove = true; // make sure to check if we are in a function
-
-                    // so that the "->" can be added correctly.
-                }
-
-                // Got it here I think
-                if (thisItem.Is("with"))
-                {
-                    processed.AppendLine("->");
-                }
-
-                if (thisItem.IsIn("and", "then"))
-                {
-                    processed.AppendLine(thisItem);
-                    if (!inReplaceAll && !inReplace && !inRemove)
-                    {
-                        processed.AppendLine("return");
-                    }
-
-                    currentBlock = thisItem;
-                }
-
-                if (thisItem.IsIn(ReferenceKeywords))
-                {
-                    processed.AppendLine(currentBlock); // use the current block that
-
-                    // was mentioned the last time.
-                }
-
-                if (thisItem.IsIn(MoveCommands))
-                {
-                    processed.AppendLine("return");
-                    processed.AppendLine("MOVE:");
-                }
-
-                if (thisItem.IsIn("left", "up") && separatedQuery.HasNext(i))
-                {
-                    processed.AppendLine("->-");
-
-                    // Optimization instead of checking if exists then finding index,
-                    // just check if index is not -1
-                    int possibleNumIndex = this.ItemOffset(separatedQuery[i + 1], englishNumbers);
-                    if (possibleNumIndex != -1)
-                    {
-                        // add a coordinate (y coordiante) if moving left or right
-                        int number = possibleNumIndex + 1; // one is at 0th index
-                        processed.AppendLine(number.ToString(CultureInfo.InvariantCulture));
-
-                        processed.AppendLine(thisItem.Is("up") ? "Y" : "X");
-                    }
-                }
-
-                if (thisItem.IsIn("down", "right") && separatedQuery.HasNext(i))
-                {
-                    processed.AppendLine("->");
-                    int possibleNumIndex = this.ItemOffset(separatedQuery[i + 1], englishNumbers);
-                    if (possibleNumIndex != -1)
-                    {
-                        int number = possibleNumIndex + 1; // one is at 0th index
-                        processed.AppendLine(number.ToString(CultureInfo.InvariantCulture));
-                        processed.AppendLine(thisItem.Is("down") ? "X" : "Y");
-                    }
-                }
-
-                if (thisItem.IsIn(CancelCommands))
-                {
-                    processed.AppendLine("CANCEL_LAST_COMMAND");
+                    words[i] = suggestions[0];
                 }
             }
 
-            return processed;
+            // Final spell checked word
+            message = string.Join(" ", words);
+
+            // (4.2) checks if it exists in any of the block descriptions
+            // (4.3) if it does then add it to the token
+            this.processedTokens = new List<Token>(this.TokenizeKeywords(message, out this.processedIndicies));
+            this.processedMessage = message;
+
+            // (4.4) Check if the processedTokens contains command
+            bool hasCommands = false;
+            for (int j = 0; j < ambigiousTokens.Count; j++)
+            {
+                Token current = ambigiousTokens[j];
+                for (int i = 0; i < Math.Min(processedTokens.Count, current.Index); i++)
+                {
+                    if (this.processedTokens[i].Type == TokenType.Command)
+                    {
+                        if (!(this.processedTokens[i].Value[0].IsIn(CancelCommands)) &&
+                            !(this.processedTokens[i].Value[0].IsIn(UndoCommands)))
+                        {
+                            hasCommands = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!hasCommands)
+                {
+                    ambigiousTokens.RemoveAt(j);
+                    j--;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (this.ambigiousTokens.Count > 0 && hasCommands)
+            {
+                // Start asking user
+                Token next = this.ambigiousTokens[0];
+                string question = next.GetUserConfirmation(this.config);
+                string translatedQuestion = this.translator.Translate(question, "English", this.config.Language);
+                callback(translatedQuestion);
+            }
+            else
+            {
+                ambigiousTokens.Clear();
+                this.FinalizeProcessing();
+            }
         }
 
         /// <summary>
@@ -955,7 +1042,12 @@ namespace Penguin
                 return true;
             }
 
-            if (theNeedle.IsIn(ReferenceKeywords))
+            if (theNeedle.IsIn(BlockReferenceKeywords))
+            {
+                return true;
+            }
+
+            if (theNeedle.IsIn(CommandJointKeywords))
             {
                 return true;
             }

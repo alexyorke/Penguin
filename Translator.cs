@@ -7,7 +7,7 @@
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Penguin
+namespace PenguinSdk
 {
     using System.Collections.Generic;
     using System.IO;

@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{62EA6090-3FE8-4E7F-89DD-BE36D4E5F078}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+	ProjectSection(SolutionItems) = preProject
+		Defining R1 and R2.htm = Defining R1 and R2.htm
+		GLOSSARY.htm = GLOSSARY.htm
+		Marking vowels as consonants.htm = Marking vowels as consonants.htm
+		stem.c = stem.c
+		The apostrophe character.htm = The apostrophe character.htm
+		The English (Porter2) stemming algorithm.htm = The English (Porter2) stemming algorithm.htm
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnglishStemmer", "EnglishStemmer\EnglishStemmer.csproj", "{7A2B92A5-F0EF-4B42-927F-57FC7F920C28}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.EnglishStemmer", "Test.EnglishStemmer\Test.EnglishStemmer.csproj", "{860F4E1E-3C63-4554-BD9F-B1CE5E9EA145}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(VaultVsipSolution-v1) = preSolution
+		VaultHost = http://fortress/VaultService
+		VaultRepositoryID = 3
+		VaultRepositoryGUID = 07e16206-c68d-4898-a048-82ffb72e6583
+		ProjectCount = 3
+		ProjectRelativeDiskPath1 = EnglishStemmer.sln
+		ProjectRelativeDiskPath2 = EnglishStemmer\EnglishStemmer.csproj
+		ProjectRelativeDiskPath3 = Test.EnglishStemmer\Test.EnglishStemmer.csproj
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7A2B92A5-F0EF-4B42-927F-57FC7F920C28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A2B92A5-F0EF-4B42-927F-57FC7F920C28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A2B92A5-F0EF-4B42-927F-57FC7F920C28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A2B92A5-F0EF-4B42-927F-57FC7F920C28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{860F4E1E-3C63-4554-BD9F-B1CE5E9EA145}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{860F4E1E-3C63-4554-BD9F-B1CE5E9EA145}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{860F4E1E-3C63-4554-BD9F-B1CE5E9EA145}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{860F4E1E-3C63-4554-BD9F-B1CE5E9EA145}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,29 +1,148 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// --------------------------------------------------------------------------------------------------------------------
+// <copyright file="PenguinBlock.cs" company="">
+//   
+// </copyright>
+// <summary>
+//   The penguin block.
+// </summary>
+// --------------------------------------------------------------------------------------------------------------------
 
-namespace Penguin
+using PlayerIOClient;
+namespace PenguinSdk
 {
+    /// <summary>
+    /// The penguin block.
+    /// </summary>
     public class PenguinBlock
     {
-        public PenguinVector Location { get; set; }
+        #region Fields
 
-        public int X { get { return Location.X; } set { Location.X = value; } }
+        /// <summary>
+        /// The location.
+        /// </summary>
+        private PenguinVector location;
 
-        public int Y { get; set; }
+        #endregion
 
-        public int Z { get; set; }
+        public virtual void Build(PenguinMap map, Connection c)
+        {
+            c.Send(map.WorldKey,
+                Z,
+                X,
+                Y,
+                ID,
+                Rotation
+            );
+        }
 
+        #region Constructors and Destructors
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PenguinBlock"/> class.
+        /// </summary>
+        /// <param name="x">
+        /// The x.
+        /// </param>
+        /// <param name="y">
+        /// The y.
+        /// </param>
+        /// <param name="z">
+        /// The z.
+        /// </param>
+        /// <param name="id">
+        /// The id.
+        /// </param>
+        /// <param name="rotation">
+        /// The rotation.
+        /// </param>
+        public PenguinBlock(int x, int y, int z, int id, int rotation)
+        {
+            this.location = new PenguinVector(x, y, z);
+            this.ID = id;
+            this.Rotation = rotation;
+        }
+
+        #endregion
+
+        #region Public Properties
+
+        /// <summary>
+        /// Gets or sets the id.
+        /// </summary>
         public int ID { get; set; }
 
-        public PenguinBlock(int x, int y, int z, int id)
+        /// <summary>
+        /// Gets or sets the location.
+        /// </summary>
+        public PenguinVector Location
         {
-            X = x;
-            Y = y;
-            Z = z;
-            ID = id;
+            get
+            {
+                return this.location;
+            }
+
+            set
+            {
+                this.location = value;
+                this.X = this.location.X;
+                this.Y = this.location.Y;
+                this.Z = this.location.Z;
+            }
         }
+
+        /// <summary>
+        /// Gets or sets the rotation.
+        /// </summary>
+        public int Rotation { get; set; }
+
+        /// <summary>
+        /// Gets or sets the x.
+        /// </summary>
+        public int X
+        {
+            get
+            {
+                return this.location.X;
+            }
+
+            set
+            {
+                this.location.X = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the y.
+        /// </summary>
+        public int Y
+        {
+            get
+            {
+                return this.location.Y;
+            }
+
+            set
+            {
+                this.location.Y = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the z.
+        /// </summary>
+        public int Z
+        {
+            get
+            {
+                return this.location.Z;
+            }
+
+            set
+            {
+                this.location.Z = value;
+            }
+        }
+
+        #endregion
     }
 }

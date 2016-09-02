@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Penguin
+namespace PenguinSdk
 {
     /// <summary>
     /// Selection requirements for different selections
@@ -16,7 +16,7 @@ namespace Penguin
         /// <summary>
         /// Gets the selection area
         /// </summary>
-        IEnumerable<PenguinVector> GetSelectionArea();
+        List<PenguinVector> GetSelectionArea();
 
         /// <summary>
         /// Gets the everybody edits map
